@@ -37,7 +37,7 @@ void vm_print_all(vm_t *vm, FILE *fp)
   }
 }
 
-void vm_execute(vm_t *vm)
+err_t vm_execute(vm_t *vm)
 {
 #if DEBUG
   vm_print_all(vm, stderr);
@@ -53,41 +53,71 @@ void vm_execute(vm_t *vm)
     vm->iptr++;
     break;
   case OP_PUSH:
+    if (vm->sptr >= VM_STACK_MAX)
+      return ERR_STACK_OVERFLOW;
     vm->stack[vm->sptr] = op.operand;
     vm->sptr++;
     vm->iptr++;
     break;
   case OP_PLUS:
-    vm->stack[vm->sptr - 2] += vm->stack[vm->sptr - 1];
+    if (vm->sptr < 2)
+      return ERR_STACK_UNDERFLOW;
+    i64 a = vm->stack[vm->sptr - 2];
+    i64 b = vm->stack[vm->sptr - 1];
+    if (a > 0 && (b > (INT64_MAX - a)))
+      return ERR_INTEGER_OVERFLOW;
+    else if (b < (INT64_MIN - a))
+      return ERR_INTEGER_UNDERFLOW;
+    vm->stack[vm->sptr - 2] += b;
     vm->sptr--;
     vm->iptr++;
     break;
   case OP_DUP:
+    if (vm->sptr == 0)
+      return ERR_STACK_UNDERFLOW;
+    else if (vm->sptr >= VM_STACK_MAX)
+      return ERR_STACK_OVERFLOW;
     vm->stack[vm->sptr] = vm->stack[vm->sptr - 1 - op.operand];
     vm->sptr++;
     vm->iptr++;
     break;
   case OP_PRINT:
+    if (vm->sptr == 0)
+      return ERR_STACK_UNDERFLOW;
     printf("%" PRId64 "\n", vm->stack[vm->sptr - 1]);
     vm->iptr++;
     break;
   case OP_LABEL:
+    if (op.operand > VM_LABEL_MAX)
+      return ERR_LABEL_OVERFLOW;
     vm->labels[op.operand] = vm->iptr + 1;
     vm->iptr++;
     break;
   case OP_JUMP_REL:
+    if (vm->iptr + op.operand > VM_PROGRAM_MAX || vm->iptr + op.operand < 0)
+      return ERR_ILLEGAL_JUMP;
     vm->iptr += op.operand;
     break;
   case OP_JUMP_LABEL:
+    if (op.operand > VM_LABEL_MAX)
+      return ERR_LABEL_OVERFLOW;
     vm->iptr = vm->labels[op.operand];
     break;
+  default:
+    return ERR_ILLEGAL_INSTRUCTION;
   }
+  return ERR_OK;
 }
 
-void vm_execute_all(vm_t *vm)
+err_t vm_execute_all(vm_t *vm)
 {
   while (vm->program[vm->iptr].opcode != OP_HALT && vm->iptr < vm->size_program)
-    vm_execute(vm);
+  {
+    err_t err = vm_execute(vm);
+    if (err != ERR_OK)
+      return err;
+  }
+  return ERR_OK;
 }
 
 void vm_copy_program(vm_t *vm, op_t *ops, size_t size_ops)
