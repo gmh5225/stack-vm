@@ -36,8 +36,13 @@ int main(void)
   /* fp = fopen("test.bin", "rb"); */
   /* vm_read_program(&vm, fp); */
   /* fclose(fp); */
-  vm_execute_all(&vm);
-  vm_print_all(&vm, stderr);
+  err_t err = vm_execute_all(&vm);
+  if (err != ERR_OK)
+  {
+    fprintf(stderr, "ERROR: %s\n", err_as_cstr(err));
+    vm_print_all(&vm, stderr);
+    return -1;
+  }
   fp = fopen("test.bin", "wb");
   vm_write_program(&vm, fp);
   fclose(fp);
