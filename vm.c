@@ -106,6 +106,10 @@ void vm_read_program(vm_t *vm, FILE *fp)
   fseek(fp, 0, SEEK_END);
   long size = ftell(fp);
   fseek(fp, 0, SEEK_SET);
-  vm->size_program = size / sizeof(vm->program[0]);
-  fread(vm->program, sizeof(vm->program[0]), vm->size_program, fp);
+
+  size_t program_size = size / sizeof(vm->program[0]);
+  op_t program[program_size];
+
+  fread(program, sizeof(program[0]), program_size, fp);
+  vm_copy_program(vm, program, program_size);
 }
