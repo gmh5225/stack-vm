@@ -199,3 +199,74 @@ bool test_lib_buffer_seek_next(void)
          test_sample_third_word && test_sample_does_not_skip;
 }
 
+bool test_lib_buffer_seek_nextline(void)
+{
+  size_t text_size = 256;
+  char *text       = generate_random_text(text_size, text_size / 4);
+  buffer_t buffer  = buffer_read_cstr("*test-cstr*", text, text_size);
+  free(text);
+
+  // Check we're actually skipping to a newline (i.e. we've got a
+  // newline or space behind us)
+  buffer_seek_nextline(&buffer);
+  ASSERT(test_not_at_blank, !isspace(buffer_peek(buffer)));
+
+  // Check behaviour when we're at the end
+  buffer.cur = buffer.available;
+  buffer_seek_nextline(&buffer);
+  ASSERT(test_eof_behaviour, buffer_at_end(buffer));
+
+  // Reset
+  free(buffer.data);
+  buffer = (buffer_t){0};
+
+  // Let's test that it actually does what we want with some sample
+  // text
+  char sample[] = "I should stay here\n"
+                  "I should stop here\n"
+                  "\n"
+                  "Can I stop here?\n"
+                  "\n"
+                  "\n"
+                  "a\n"
+                  "\n"
+                  "      stop here";
+
+  size_t sample_text_size = ARR_SIZE(sample);
+  buffer = buffer_read_cstr("*test-cstr*", sample, sample_text_size);
+
+  buffer_seek_nextline(&buffer);
+  ASSERT(test_sample_first_sentence,
+         strncmp(buffer.data + buffer.cur, "I should stay here", 18) == 0);
+  buffer.cur += 18;
+
+  buffer_seek_nextline(&buffer);
+  ASSERT(test_sample_second_sentence,
+         strncmp(buffer.data + buffer.cur, "I should stop here", 18) == 0);
+  buffer.cur += 18;
+
+  buffer_seek_nextline(&buffer);
+  ASSERT(test_sample_third_sentence,
+         strncmp(buffer.data + buffer.cur, "Can I stop here?", 16) == 0);
+  buffer.cur += 16;
+
+  buffer_seek_nextline(&buffer);
+  ASSERT(test_sample_fourth_sentence,
+         strncmp(buffer.data + buffer.cur, "a", 1) == 0);
+  buffer.cur += 1;
+
+  buffer_seek_nextline(&buffer);
+  ASSERT(test_sample_fifth_sentence,
+         strncmp(buffer.data + buffer.cur, "stop here", 9) == 0);
+
+  buffer_seek_next(&buffer);
+  ASSERT(test_sample_does_not_skip,
+         strncmp(buffer.data + buffer.cur, "stop here", 9) == 0);
+
+  free(buffer.data);
+
+  return test_not_at_blank && test_eof_behaviour &&
+         test_sample_first_sentence && test_sample_second_sentence &&
+         test_sample_third_sentence && test_sample_fourth_sentence &&
+         test_sample_fifth_sentence && test_sample_does_not_skip;
+}
