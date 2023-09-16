@@ -46,6 +46,8 @@ void darr_init(darr_t *, size_t initial_size, size_t member_size);
 void darr_free(darr_t *);
 void darr_ensure_capacity(darr_t *, size_t);
 void darr_tighten(darr_t *);
+void darr_mem_append(darr_t *, void *, size_t);
+void darr_mem_insert(darr_t *, void *, size_t, size_t);
 
 #define DARR_APP(DARR, TYPE, OBJ)                   \
   do                                                \

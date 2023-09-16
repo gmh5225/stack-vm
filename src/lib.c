@@ -110,3 +110,20 @@ void darr_tighten(darr_t *darr)
     darr->data = reallocarray(darr->data, darr->used, darr->member_size);
   darr->available = darr->used;
 }
+
+void darr_mem_append(darr_t *darr, void *ptr, size_t size)
+{
+  darr_ensure_capacity(darr, size);
+  memcpy(darr->data + darr->used, ptr, size * sizeof(darr->member_size));
+}
+
+void darr_mem_insert(darr_t *darr, void *ptr, size_t size, size_t where)
+{
+  // This is illegal
+  if (where > darr->available)
+    return;
+  else if (where + size > darr->available)
+    darr_ensure_capacity(darr, where + size - darr->available);
+
+  memcpy(darr->data + where, ptr, size * sizeof(darr->member_size));
+}
