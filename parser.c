@@ -33,7 +33,7 @@ perr_t parse_i64(buffer_t *buf, i64 *ret)
   if (end_of_number != 0)
     *ret = atoi(operand);
   else
-    err = PERR_UNEXPECTED_OPERAND; // catch all
+    err = PERR_EXPECTED_INTEGER; // catch all
   buf->cur += end_of_number;
   return err;
 }
@@ -122,6 +122,8 @@ const char *perr_as_cstr(perr_t err)
     return "PERR_UNEXPECTED_OPERAND";
   case PERR_EOF:
     return "PERR_EOF";
+  case PERR_EXPECTED_INTEGER:
+    return "PERR_EXPECTED_INTEGER";
   default:
     return "";
   }
