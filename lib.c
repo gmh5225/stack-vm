@@ -71,6 +71,8 @@ bool buffer_at_end(buffer_t buf)
 
 size_t buffer_space_left(buffer_t buf)
 {
+  if (buffer_at_end(buf))
+    return 0;
   return buf.available - buf.cur;
 }
 

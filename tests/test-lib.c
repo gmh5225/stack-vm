@@ -300,3 +300,34 @@ bool test_lib_buffer_at_end(void)
   return test_very_easy && test_penultimate && test_ultimate &&
          test_kinda_past && test_way_past;
 }
+
+bool test_lib_buffer_space_left(void)
+{
+  // Empty context => No space left
+  buffer_t buf = {0};
+  ASSERT(test_empty_no_space, buffer_space_left(buf) == 0);
+
+  // Fresh context => Full space left
+  size_t text_size = 256;
+  char *text       = generate_random_data(text_size);
+  buf              = buffer_read_cstr("*test-cstr*", text, text_size);
+  free(text);
+  ASSERT(test_fresh_full_space, buffer_space_left(buf) == buf.available);
+
+  // If I halfway through the file I should get half the space left
+  buf.cur = buf.available / 2;
+  ASSERT(test_halfway_half_space, buffer_space_left(buf) == buf.available / 2);
+
+  // If I reach the end I should have no space
+  buf.cur = buf.available;
+  ASSERT(test_end_no_space, buffer_space_left(buf) == 0);
+
+  // If I go past the end, I still have no space
+  buf.cur = buf.available + 256;
+  ASSERT(test_past_end_no_space, buffer_space_left(buf) == 0);
+
+  free(buf.data);
+
+  return test_empty_no_space && test_fresh_full_space &&
+         test_halfway_half_space && test_end_no_space && test_past_end_no_space;
+}
