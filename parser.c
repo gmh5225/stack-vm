@@ -48,7 +48,7 @@ perr_t parse_line(buffer_t *buf, op_t *op)
   {
     buf->cur += end_of_operand + 1;
     op->opcode = OP_HALT;
-    return PERR_OK;
+    goto UNARY_OP;
   }
   else if (strncmp(buf->data + buf->cur, "push", 4) == 0)
   {
@@ -62,21 +62,26 @@ perr_t parse_line(buffer_t *buf, op_t *op)
   {
     buf->cur += end_of_operand + 1;
     op->opcode = OP_PLUS;
-    return PERR_OK;
+    goto UNARY_OP;
   }
   else if (strncmp(buf->data + buf->cur, "dup", 4) == 0)
   {
     buf->cur += end_of_operand + 1;
     op->opcode = OP_DUP;
-    return PERR_OK;
+    goto UNARY_OP;
   }
   else if (strncmp(buf->data + buf->cur, "print", 4) == 0)
   {
     buf->cur += end_of_operand + 1;
     op->opcode = OP_PRINT;
-    return PERR_OK;
+    goto UNARY_OP;
   }
   return PERR_UNEXPECTED_OPERATOR;
+UNARY_OP:
+  buffer_seek_next(buf);
+  if (!end_of_buffer(*buf) && buf->data[buf->cur] != '\n')
+    return PERR_UNEXPECTED_OPERAND;
+  return PERR_OK;
 }
 
 perr_t parse_buffer(buffer_t *buf, op_t **instructions,
