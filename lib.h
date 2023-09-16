@@ -28,7 +28,8 @@ buffer_t buffer_read_file(const char *, FILE *fp);
 buffer_t buffer_read_cstr(const char *, const char *str, size_t);
 char buffer_peek(buffer_t);
 void buffer_seek_next(buffer_t *);
-bool buffer_is_end(buffer_t);
+void buffer_seek_nextline(buffer_t *);
+bool end_of_buffer(buffer_t);
 size_t buffer_space_left(buffer_t);
 
 /* Expandable generic buffers */

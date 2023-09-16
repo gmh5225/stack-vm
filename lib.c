@@ -43,18 +43,26 @@ buffer_t buffer_read_cstr(const char *name, const char *str, size_t size)
 
 char buffer_peek(buffer_t buf)
 {
-  if (!buffer_is_end(buf))
+  if (!end_of_buffer(buf))
     return buf.data[buf.cur];
   return 0;
 }
 
-void buffer_seek_next(buffer_t *buffer)
+void buffer_seek_nextline(buffer_t *buffer)
 {
-  for (; isspace(buffer->data[buffer->cur]); ++buffer->cur)
+  for (; !end_of_buffer(*buffer) && isspace(buffer->data[buffer->cur]);
+       ++buffer->cur)
     continue;
 }
 
-bool buffer_is_end(buffer_t buf)
+void buffer_seek_next(buffer_t *buffer)
+{
+  for (; !end_of_buffer(*buffer) && isblank(buffer->data[buffer->cur]);
+       ++buffer->cur)
+    continue;
+}
+
+bool end_of_buffer(buffer_t buf)
 {
   return buf.cur >= buf.available || buf.cur == buf.available - 1;
 }

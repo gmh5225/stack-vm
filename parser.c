@@ -44,13 +44,37 @@ perr_t parse_line(buffer_t *buf, op_t *op)
 
   // Find the end of operator
   size_t end_of_operand = strcspn(buf->data + buf->cur, " ");
-  if (strncmp(buf->data + buf->cur, "push", 4) == 0)
+  if (strncmp(buf->data + buf->cur, "halt", 4) == 0)
+  {
+    buf->cur += end_of_operand + 1;
+    op->opcode = OP_HALT;
+    return PERR_OK;
+  }
+  else if (strncmp(buf->data + buf->cur, "push", 4) == 0)
   {
     // Seek the operand
     buf->cur += end_of_operand + 1;
     buffer_seek_next(buf);
     op->opcode = OP_PUSH;
     return parse_i64(buf, &op->operand);
+  }
+  else if (strncmp(buf->data + buf->cur, "plus", 4) == 0)
+  {
+    buf->cur += end_of_operand + 1;
+    op->opcode = OP_PLUS;
+    return PERR_OK;
+  }
+  else if (strncmp(buf->data + buf->cur, "dup", 4) == 0)
+  {
+    buf->cur += end_of_operand + 1;
+    op->opcode = OP_DUP;
+    return PERR_OK;
+  }
+  else if (strncmp(buf->data + buf->cur, "print", 4) == 0)
+  {
+    buf->cur += end_of_operand + 1;
+    op->opcode = OP_PRINT;
+    return PERR_OK;
   }
   return PERR_UNEXPECTED_OPERATOR;
 }
@@ -62,8 +86,8 @@ perr_t parse_buffer(buffer_t *buf, op_t **instructions,
   darr_init(&darr, DARR_INITAL_SIZE, sizeof(**instructions));
   size_t parsed;
 
-  buffer_seek_next(buf);
-  for (parsed = 0; !buffer_is_end(*buf); ++parsed)
+  buffer_seek_nextline(buf);
+  for (parsed = 0; !end_of_buffer(*buf); ++parsed)
   {
     op_t parsed = {0};
     perr_t perr = parse_line(buf, &parsed);
@@ -78,7 +102,7 @@ perr_t parse_buffer(buffer_t *buf, op_t **instructions,
     /* printf("data=`%s`, cur=%lu, available=%lu\n", buf->data + buf->cur, */
     /*        buf->cur, buf->available); */
 
-    buffer_seek_next(buf);
+    buffer_seek_nextline(buf);
   }
   darr_tighten(&darr);
   *instructions        = darr.data;
