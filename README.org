@@ -1,0 +1,43 @@
+#+title: stack-vm.c
+#+author: Aryadev Chavali
+#+description: A simple assembler and interpreter for a stack based bytecode VM
+#+date: 2023-09-16
+
+Does what it says.  In C11.
+
+I don't support Windows necessarily but I think it should be possible
+to build and run this using MinGW or something as I'm not doing
+anything particularly Posix specific (yet).  +But honestly, why are
+you using Windows anyway?+
+
+* Build instructions
+Have ~make~ installed pretty please.  I'm using ~gcc~ but ~clang~ does
+work as well so go crazy (edit [[file:Makefile::CC=gcc][here]] to
+change the compiler).
+
+For everything do:
+#+begin_src sh
+make all
+#+end_src
+
+The assembler, interpreter and unit tests are their own binaries so
+you could just build the one you want specifically.
+#+begin_src sh
+make interpreter.out
+make assembler.out
+make test.out
+#+end_src
+* How to use
+=assembler.out=: Takes two inputs:
++ File name for assembly code
++ File name for output bytecode
+Then it attempts to assemble the input file given.  It does produce
+errors so lookout for them.
+
+=interpreter.out=: Takes one input:
++ File name for bytecode file
+It attempts to execute the bytecode at the file given on a fresh
+virtual machine instance.  Also produces errors.
+
+=test.out=: Takes no input.  Runs unit tests.  Look for ~#define
+VERBOSE_LOGS N~ and set it to 1 to produce more verbose logs.
