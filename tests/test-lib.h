@@ -15,22 +15,27 @@ bool test_lib_buffer_seek_nextline(void);
 bool test_lib_buffer_at_end(void);
 bool test_lib_buffer_space_left(void);
 
-bool test_lib_darr_types(void);
 bool test_lib_darr_ensure_capacity(void);
 bool test_lib_darr_tighten(void);
+bool test_lib_darr_mem_append(void);
+bool test_lib_darr_mem_insert(void);
 bool test_lib_DARR_APP(void);
 
 static const test_t TEST_LIB_SUITE[] = {
-    CREATE_TEST(test_lib_MAX), CREATE_TEST(test_lib_MIN),
-    CREATE_TEST(test_lib_ARR_SIZE), CREATE_TEST(test_lib_buffer_read_file),
-    CREATE_TEST(test_lib_buffer_read_cstr), CREATE_TEST(test_lib_buffer_peek),
+    CREATE_TEST(test_lib_MAX),
+    CREATE_TEST(test_lib_MIN),
+    CREATE_TEST(test_lib_ARR_SIZE),
+    CREATE_TEST(test_lib_buffer_read_file),
+    CREATE_TEST(test_lib_buffer_read_cstr),
+    CREATE_TEST(test_lib_buffer_peek),
     CREATE_TEST(test_lib_buffer_seek_next),
     CREATE_TEST(test_lib_buffer_seek_nextline),
     CREATE_TEST(test_lib_buffer_at_end),
     CREATE_TEST(test_lib_buffer_space_left),
-    /* CREATE_TEST(test_lib_darr_types), */
     CREATE_TEST(test_lib_darr_ensure_capacity),
     CREATE_TEST(test_lib_darr_tighten),
+    /* CREATE_TEST(test_lib_darr_mem_append), */
+    /* CREATE_TEST(test_lib_darr_mem_insert), */
     /* CREATE_TEST(test_lib_DARR_APP), */
 };
 
