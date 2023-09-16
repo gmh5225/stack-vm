@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#define VERBOSE_LOGS 1
+
 typedef bool (*test_fn)(void);
 typedef test_fn *test_suite;
 typedef struct Test
@@ -22,6 +24,7 @@ char *generate_random_text(size_t characters, size_t lines);
 #define BOOL_STATUS_TO_STR(b) \
   (b ? TERM_GREEN "PASSED" TERM_RESET : TERM_RED "FAILED" TERM_RESET)
 
+#if VERBOSE_LOGS
 #define ASSERT(RET_NAME, COND)                                                \
   bool RET_NAME = (COND);                                                     \
   if (!RET_NAME)                                                              \
@@ -30,6 +33,9 @@ char *generate_random_text(size_t characters, size_t lines);
   else                                                                        \
     printf("\t\t[" TERM_GREEN "PASSED" TERM_RESET "]: `%s` -> %s\n",          \
            #RET_NAME, #COND);
+#else
+#define ASSERT(RET_NAME, COND) bool RET_NAME = (COND);
+#endif
 
 #define CREATE_TEST(NAME) \
   {                       \
