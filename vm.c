@@ -66,7 +66,7 @@ err_t vm_execute(vm_t *vm)
     i64 b = vm->stack[vm->sptr - 1];
     if (a > 0 && (b > (INT64_MAX - a)))
       return ERR_INTEGER_OVERFLOW;
-    else if (b < (INT64_MIN - a))
+    else if (a < 0 && b < (INT64_MIN - a))
       return ERR_INTEGER_UNDERFLOW;
     vm->stack[vm->sptr - 2] += b;
     vm->sptr--;
