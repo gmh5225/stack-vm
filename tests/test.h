@@ -26,7 +26,10 @@ char *generate_random_text(size_t characters, size_t lines);
   bool RET_NAME = (COND);                                                     \
   if (!RET_NAME)                                                              \
     printf("\t\t[" TERM_RED "FAILED" TERM_RESET "]: `%s` -> %s\n", #RET_NAME, \
-           #COND);
+           #COND);                                                            \
+  else                                                                        \
+    printf("\t\t[" TERM_GREEN "PASSED" TERM_RESET "]: `%s` -> %s\n",          \
+           #RET_NAME, #COND);
 
 #define CREATE_TEST(NAME) \
   {                       \
