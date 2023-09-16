@@ -27,4 +27,4 @@ run: $(OUT)
 
 .PHONY:
 clean:
-	rm -rfv $(OUT) assembler.out interpreter.out test.out
+	rm -rfv $(OUT) $(OBJECTS) $(TEST_MODULES) tests/*.txt assembler.out interpreter.out test.out
