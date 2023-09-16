@@ -363,3 +363,32 @@ bool test_lib_darr_ensure_capacity(void)
   return test_empty_causes_trigger && test_sufficient_no_change &&
          test_filled_triggers_change;
 }
+
+bool test_lib_darr_tighten(void)
+{
+  darr_t darr      = {0};
+  darr.member_size = sizeof(int);
+
+  // No space => No change
+  size_t prev = darr.available;
+  darr_tighten(&darr);
+  ASSERT(test_empty_no_trigger, prev == darr.available);
+
+  // If I've got way more space than I need, then tighten should work
+  darr_init(&darr, 64, sizeof(int));
+  prev      = darr.available;
+  darr.used = 32;
+  darr_tighten(&darr);
+  ASSERT(test_more_space_tightens, darr.used == darr.available && darr.data);
+
+  // If I use no space and I tighten, I should free the data I have
+  darr.used = 0;
+  prev      = darr.available;
+  darr_tighten(&darr);
+  ASSERT(test_no_used_frees, darr.available == 0 && darr.data == NULL);
+
+  darr_free(&darr);
+
+  return test_empty_no_trigger && test_more_space_tightens &&
+         test_no_used_frees;
+}

@@ -101,5 +101,12 @@ void darr_ensure_capacity(darr_t *darr, size_t wanted)
 
 void darr_tighten(darr_t *darr)
 {
-  darr->data = reallocarray(darr->data, darr->used, darr->member_size);
+  if (darr->used == 0)
+  {
+    free(darr->data);
+    darr->data = NULL;
+  }
+  else
+    darr->data = reallocarray(darr->data, darr->used, darr->member_size);
+  darr->available = darr->used;
 }
