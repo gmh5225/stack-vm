@@ -69,8 +69,9 @@ perr_t parse_line(buffer_t *buf, op_t *op)
   else if (strncmp(buf->data + buf->cur, "dup", 3) == 0)
   {
     buf->cur += end_of_operator;
+    buffer_seek_next(buf);
     op->opcode = OP_DUP;
-    goto UNARY_OP;
+    return parse_i64(buf, &op->operand);
   }
   else if (strncmp(buf->data + buf->cur, "print", 5) == 0)
   {
@@ -80,12 +81,11 @@ perr_t parse_line(buffer_t *buf, op_t *op)
   }
   else if (strncmp(buf->data + buf->cur, "label", 5) == 0)
   {
-    // No named labels: just assume programmer knows what label is
-    // where (oh no what about label overflow cos you make labels in
-    // your loop?!)
+    // No name strings for labels, just unsigned integers
     buf->cur += end_of_operator;
+    buffer_seek_next(buf);
     op->opcode = OP_LABEL;
-    goto UNARY_OP;
+    return parse_i64(buf, &op->operand);
   }
   else if (strncmp(buf->data + buf->cur, "jmp", 3) == 0)
   {
