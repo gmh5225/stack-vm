@@ -17,7 +17,7 @@ size_t get_size_i64(char *str, size_t max_size)
   size_t i;
   for (i = 1; i < max_size; ++i)
   {
-    if (isspace(str[i]))
+    if (isspace(str[i]) || str[i] == '\0')
       return i; // Stop parsing
     else if (!isdigit(str[i]))
       return 0; // Isn't a number
@@ -27,6 +27,8 @@ size_t get_size_i64(char *str, size_t max_size)
 
 perr_t parse_i64(buffer_t *buf, i64 *ret)
 {
+  if (end_of_buffer(*buf))
+    return PERR_EOF;
   perr_t err           = PERR_OK;
   char *operand        = buf->data + buf->cur;
   size_t end_of_number = get_size_i64(operand, buf->available - buf->cur);
@@ -43,36 +45,36 @@ perr_t parse_line(buffer_t *buf, op_t *op)
   // Assume we are at an operator
 
   // Find the end of operator
-  size_t end_of_operand = strcspn(buf->data + buf->cur, " ");
+  size_t end_of_operand = strcspn(buf->data + buf->cur, " \n");
   if (strncmp(buf->data + buf->cur, "halt", 4) == 0)
   {
-    buf->cur += end_of_operand + 1;
+    buf->cur += end_of_operand;
     op->opcode = OP_HALT;
     goto UNARY_OP;
   }
   else if (strncmp(buf->data + buf->cur, "push", 4) == 0)
   {
     // Seek the operand
-    buf->cur += end_of_operand + 1;
+    buf->cur += end_of_operand;
     buffer_seek_next(buf);
     op->opcode = OP_PUSH;
     return parse_i64(buf, &op->operand);
   }
   else if (strncmp(buf->data + buf->cur, "plus", 4) == 0)
   {
-    buf->cur += end_of_operand + 1;
+    buf->cur += end_of_operand;
     op->opcode = OP_PLUS;
     goto UNARY_OP;
   }
   else if (strncmp(buf->data + buf->cur, "dup", 3) == 0)
   {
-    buf->cur += end_of_operand + 1;
+    buf->cur += end_of_operand;
     op->opcode = OP_DUP;
     goto UNARY_OP;
   }
   else if (strncmp(buf->data + buf->cur, "print", 5) == 0)
   {
-    buf->cur += end_of_operand + 1;
+    buf->cur += end_of_operand;
     op->opcode = OP_PRINT;
     goto UNARY_OP;
   }
