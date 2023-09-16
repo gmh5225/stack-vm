@@ -64,13 +64,13 @@ perr_t parse_line(buffer_t *buf, op_t *op)
     op->opcode = OP_PLUS;
     goto UNARY_OP;
   }
-  else if (strncmp(buf->data + buf->cur, "dup", 4) == 0)
+  else if (strncmp(buf->data + buf->cur, "dup", 3) == 0)
   {
     buf->cur += end_of_operand + 1;
     op->opcode = OP_DUP;
     goto UNARY_OP;
   }
-  else if (strncmp(buf->data + buf->cur, "print", 4) == 0)
+  else if (strncmp(buf->data + buf->cur, "print", 5) == 0)
   {
     buf->cur += end_of_operand + 1;
     op->opcode = OP_PRINT;
