@@ -45,38 +45,62 @@ perr_t parse_line(buffer_t *buf, op_t *op)
   // Assume we are at an operator
 
   // Find the end of operator
-  size_t end_of_operand = strcspn(buf->data + buf->cur, " \n");
+  size_t end_of_operator = strcspn(buf->data + buf->cur, " \n");
   if (strncmp(buf->data + buf->cur, "halt", 4) == 0)
   {
-    buf->cur += end_of_operand;
+    buf->cur += end_of_operator;
     op->opcode = OP_HALT;
     goto UNARY_OP;
   }
   else if (strncmp(buf->data + buf->cur, "push", 4) == 0)
   {
     // Seek the operand
-    buf->cur += end_of_operand;
+    buf->cur += end_of_operator;
     buffer_seek_next(buf);
     op->opcode = OP_PUSH;
     return parse_i64(buf, &op->operand);
   }
   else if (strncmp(buf->data + buf->cur, "plus", 4) == 0)
   {
-    buf->cur += end_of_operand;
+    buf->cur += end_of_operator;
     op->opcode = OP_PLUS;
     goto UNARY_OP;
   }
   else if (strncmp(buf->data + buf->cur, "dup", 3) == 0)
   {
-    buf->cur += end_of_operand;
+    buf->cur += end_of_operator;
     op->opcode = OP_DUP;
     goto UNARY_OP;
   }
   else if (strncmp(buf->data + buf->cur, "print", 5) == 0)
   {
-    buf->cur += end_of_operand;
+    buf->cur += end_of_operator;
     op->opcode = OP_PRINT;
     goto UNARY_OP;
+  }
+  else if (strncmp(buf->data + buf->cur, "label", 5) == 0)
+  {
+    // No named labels: just assume programmer knows what label is
+    // where (oh no what about label overflow cos you make labels in
+    // your loop?!)
+    buf->cur += end_of_operator;
+    op->opcode = OP_LABEL;
+    goto UNARY_OP;
+  }
+  else if (strncmp(buf->data + buf->cur, "jmp", 3) == 0)
+  {
+    buf->cur += end_of_operator;
+    buffer_seek_next(buf);
+    // If number starts with "l" then label, otherwise assume it's a
+    // relative jump
+    if (!end_of_buffer(*buf) && buf->data[buf->cur] == 'l')
+    {
+      op->opcode = OP_JUMP_LABEL;
+      ++buf->cur;
+    }
+    else
+      op->opcode = OP_JUMP_REL;
+    return parse_i64(buf, &op->operand);
   }
   return PERR_UNEXPECTED_OPERATOR;
 UNARY_OP:

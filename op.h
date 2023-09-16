@@ -15,9 +15,9 @@ typedef struct
     OP_PLUS,
     OP_DUP,
     OP_PRINT,
+    OP_LABEL,
     OP_JUMP_REL,
     OP_JUMP_LABEL,
-    OP_LABEL
   } opcode;
 
   i64 operand;
