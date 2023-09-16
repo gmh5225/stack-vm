@@ -22,10 +22,11 @@ char *generate_random_text(size_t characters, size_t lines);
 #define BOOL_STATUS_TO_STR(b) \
   (b ? TERM_GREEN "PASSED" TERM_RESET : TERM_RED "FAILED" TERM_RESET)
 
-#define ASSERT(RET_NAME, COND) \
-  bool RET_NAME = (COND);      \
-  if (!RET_NAME)               \
-    printf("\t\t[" TERM_RED "FAILED" TERM_RESET "]: %s\n", #COND);
+#define ASSERT(RET_NAME, COND)                                                \
+  bool RET_NAME = (COND);                                                     \
+  if (!RET_NAME)                                                              \
+    printf("\t\t[" TERM_RED "FAILED" TERM_RESET "]: `%s` -> %s\n", #RET_NAME, \
+           #COND);
 
 #define CREATE_TEST(NAME) \
   {                       \
