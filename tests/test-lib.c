@@ -7,7 +7,7 @@
 #include "./test-lib.h"
 #include "./test.h"
 
-#include "../lib.h"
+#include "../src/lib.h"
 
 #include <ctype.h>
 #include <errno.h>

@@ -4,9 +4,9 @@
  * Description: Unit tests for program
  */
 
-#include "../op.h"
-#include "../parser.h"
-#include "../vm.h"
+#include "../src/op.h"
+#include "../src/parser.h"
+#include "../src/vm.h"
 
 #include "./test-lib.h"
 #include "./test.h"
