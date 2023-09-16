@@ -94,7 +94,8 @@ err_t vm_execute(vm_t *vm)
     vm->iptr++;
     break;
   case OP_JUMP_REL:
-    if (vm->iptr + op.operand > VM_PROGRAM_MAX || vm->iptr + op.operand < 0)
+    if (vm->iptr + op.operand > VM_PROGRAM_MAX ||
+        ((i64)vm->iptr) + op.operand < 0)
       return ERR_ILLEGAL_JUMP;
     vm->iptr += op.operand;
     break;

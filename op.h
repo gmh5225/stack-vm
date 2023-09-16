@@ -20,7 +20,7 @@ typedef struct
     OP_LABEL
   } opcode;
 
-  word operand;
+  i64 operand;
 } op_t;
 
 #define OP_CREATE_HALT       ((op_t){.opcode = OP_HALT})
