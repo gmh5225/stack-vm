@@ -41,6 +41,44 @@ char *generate_random_data(size_t number)
   return mem;
 }
 
+char *generate_random_text(size_t characters, size_t newlines)
+{
+  const char table[] = {
+      'a',  'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+      'n',  'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+      'A',  'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+      'N',  'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+      '\n', '.', ',', ';', ':', '=', '+', '#', '~',
+  };
+  char *mem = calloc(characters + 1, sizeof(mem[0]));
+  for (size_t i = 0; i < characters; ++i)
+  {
+    size_t ret = 0;
+    if (newlines != 0)
+    {
+      // Bias the probability towards newlines
+      ret = rand() % (2 * ARR_SIZE(table));
+      if (ret >= ARR_SIZE(table))
+        ret = '\n';
+      else
+        ret = table[ret];
+    }
+    else
+      ret = table[rand() % ARR_SIZE(table)];
+
+    if (ret == '\n')
+    {
+      if (newlines == 0)
+        ret = table[ARR_SIZE(table) - 1];
+      else
+        --newlines;
+    }
+    mem[i] = ret;
+  }
+  mem[characters] = '\0';
+  return mem;
+}
+
 /* Lib testing */
 int main(void)
 {

@@ -13,6 +13,7 @@ typedef struct Test
 } test_t;
 
 char *generate_random_data(size_t number);
+char *generate_random_text(size_t characters, size_t lines);
 
 #define TERM_RED   "\x1b[31m"
 #define TERM_GREEN "\x1b[32m"
