@@ -64,6 +64,8 @@ void buffer_seek_next(buffer_t *buffer)
 
 bool buffer_at_end(buffer_t buf)
 {
+  if (buf.available == 0)
+    return true;
   return buf.cur >= buf.available - 1;
 }
 

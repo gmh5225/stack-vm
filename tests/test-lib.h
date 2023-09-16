@@ -27,7 +27,7 @@ static const test_t TEST_LIB_SUITE[] = {
     CREATE_TEST(test_lib_buffer_peek),
     CREATE_TEST(test_lib_buffer_seek_next),
     CREATE_TEST(test_lib_buffer_seek_nextline),
-    /* CREATE_TEST(test_lib_buffer_at_end), */
+    CREATE_TEST(test_lib_buffer_at_end),
     /* CREATE_TEST(test_lib_buffer_space_left), */
     /* CREATE_TEST(test_lib_darr_ensure_capacity), */
     /* CREATE_TEST(test_lib_darr_tighten), */

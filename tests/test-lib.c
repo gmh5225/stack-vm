@@ -270,3 +270,33 @@ bool test_lib_buffer_seek_nextline(void)
          test_sample_third_sentence && test_sample_fourth_sentence &&
          test_sample_fifth_sentence && test_sample_does_not_skip;
 }
+
+bool test_lib_buffer_at_end(void)
+{
+  // Empty context => empty
+  buffer_t buf = {0};
+  ASSERT(test_very_easy, buffer_at_end(buf));
+
+  // Read a large text, go right to the end and check when going to
+  // the penultimate, ultimate and past the end
+  size_t text_size = 256;
+  char *text       = generate_random_data(text_size);
+  buf              = buffer_read_cstr("*test-cstr*", text, text_size);
+  free(text);
+
+  buf.cur = buf.available - 1;
+  ASSERT(test_penultimate, buffer_at_end(buf));
+  buf.cur = buf.available;
+  ASSERT(test_ultimate, buffer_at_end(buf));
+
+  buf.cur = buf.available + 1;
+  ASSERT(test_kinda_past, buffer_at_end(buf));
+
+  buf.cur = buf.available + text_size;
+  ASSERT(test_way_past, buffer_at_end(buf));
+
+  free(buf.data);
+
+  return test_very_easy && test_penultimate && test_ultimate &&
+         test_kinda_past && test_way_past;
+}
