@@ -6,29 +6,110 @@
 
 #include "./parser.h"
 
+#include <ctype.h>
+#include <stdio.h>
 #include <string.h>
 
-presult_t parse_line(buffer_t *buf)
+size_t get_size_i64(char *str, size_t max_size)
 {
-  // Assume we are at an operand?
-  presult_t res  = {0};
-  size_t segment = strcspn(buf->data, " ");
-  if (strncmp(buf->data, "push", segment) == 0)
+  if (!(str[0] == '-' || isdigit(str[0])))
+    return 0;
+  size_t i;
+  for (i = 1; i < max_size; ++i)
   {
-    res.operands          = calloc(1, sizeof(res.operands[0]));
-    res.operands_size     = 1;
-    res.operands->opcode  = OP_PUSH;
-    res.operands->operand = atoi(buf->data + segment);
-    res.ok                = true;
+    if (isspace(str[i]))
+      return i; // Stop parsing
+    else if (!isdigit(str[i]))
+      return 0; // Isn't a number
   }
-  return res;
+  return i; // EOF
 }
 
-presult_t parse_buffer(buffer_t *buf)
+perr_t parse_i64(buffer_t *buf, i64 *ret)
 {
-  while (!buffer_is_end(*buf))
+  perr_t err           = PERR_OK;
+  char *operand        = buf->data + buf->cur;
+  size_t end_of_number = get_size_i64(operand, buf->available - buf->cur);
+  if (end_of_number != 0)
+    *ret = atoi(operand);
+  else
+    err = PERR_UNEXPECTED_OPERAND; // catch all
+  buf->cur += end_of_number;
+  return err;
+}
+
+perr_t parse_line(buffer_t *buf, op_t *op)
+{
+  // Assume we are at an operator
+
+  // Find the end of operator
+  size_t end_of_operand = strcspn(buf->data + buf->cur, " ");
+  if (strncmp(buf->data + buf->cur, "push", 4) == 0)
   {
-    parse_line(buf);
+    // Seek the operand
+    buf->cur += end_of_operand + 1;
+    buffer_seek_next(buf);
+    op->opcode = OP_PUSH;
+    return parse_i64(buf, &op->operand);
+  }
+  return PERR_UNEXPECTED_OPERATOR;
+}
+
+perr_t parse_buffer(buffer_t *buf, op_t **instructions,
+                    u64 *instructions_parsed)
+{
+  darr_t darr = {0};
+  darr_init(&darr, DARR_INITAL_SIZE, sizeof(**instructions));
+  size_t parsed;
+
+  buffer_seek_next(buf);
+  for (parsed = 0; !buffer_is_end(*buf); ++parsed)
+  {
+    op_t parsed = {0};
+    perr_t perr = parse_line(buf, &parsed);
+    /* op_print(parsed, stdout); */
+    /* puts(""); */
+    if (perr != PERR_OK)
+    {
+      free(darr.data);
+      return perr;
+    }
+    DARR_APP(&darr, op_t *, parsed);
+    /* printf("data=`%s`, cur=%lu, available=%lu\n", buf->data + buf->cur, */
+    /*        buf->cur, buf->available); */
+
     buffer_seek_next(buf);
   }
+  darr_tighten(&darr);
+  *instructions        = darr.data;
+  *instructions_parsed = parsed;
+  return PERR_OK;
+}
+
+const char *perr_as_cstr(perr_t err)
+{
+  switch (err)
+  {
+  case PERR_OK:
+    return "PERR_OK";
+  case PERR_UNEXPECTED_OPERATOR:
+    return "PERR_UNEXPECTED_OPERATOR";
+  case PERR_UNEXPECTED_OPERAND:
+    return "PERR_UNEXPECTED_OPERAND";
+  case PERR_EOF:
+    return "PERR_EOF";
+  default:
+    return "";
+  }
+}
+
+char *perr_generate(perr_t err, buffer_t *buffer)
+{
+  const char *err_cstr = perr_as_cstr(err);
+  int char_num_size    = snprintf(NULL, 0, "%zu", buffer->cur);
+  char *message =
+      calloc((3 + char_num_size + strlen(err_cstr) + strlen(buffer->name)),
+             sizeof(*message));
+  sprintf(message, "%s:%lu %s", buffer->name, buffer->cur, err_cstr);
+  return message;
 }
