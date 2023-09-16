@@ -1,0 +1,7 @@
+#+title: Unit tests
+#+author: Aryadev Chavali
+#+description: Description
+#+date: 2023-09-16
+
+Note: Always assume you're running from the parent directory
+i.e. stack-vm.c, so all mock data and files are addressed accordingly.
