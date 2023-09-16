@@ -143,3 +143,59 @@ bool test_lib_buffer_peek(void)
   return test_top_equality && test_next_equality && test_empty;
 }
 
+bool test_lib_buffer_seek_next(void)
+{
+  size_t text_size = 256;
+  char *text       = generate_random_text(text_size, text_size / 4);
+  buffer_t buffer  = buffer_read_cstr("*test-cstr*", text, text_size);
+  free(text);
+
+  // Check we're actually skipping to a non blank character
+  buffer_seek_next(&buffer);
+  ASSERT(test_not_at_blank, !isblank(buffer_peek(buffer)));
+
+  // Check behaviour when we're at the end
+  buffer.cur = buffer.available;
+  buffer_seek_next(&buffer);
+  ASSERT(test_eof_behaviour, buffer_at_end(buffer));
+
+  // Reset
+  free(buffer.data);
+  buffer = (buffer_t){0};
+
+  // Let's test that it actually does what we want with some sample
+  // text
+
+  char sample[] = "    1    Word1 Word2     Word3\nShouldn't be skipped to\n";
+  size_t sample_text_size = ARR_SIZE(sample);
+  buffer = buffer_read_cstr("*test-cstr*", sample, sample_text_size);
+
+  buffer_seek_next(&buffer);
+  ASSERT(test_sample_char, buffer_peek(buffer) == '1');
+
+  ++buffer.cur;
+  buffer_seek_next(&buffer);
+  ASSERT(test_sample_first_word,
+         strncmp("Word1", buffer.data + buffer.cur, 5) == 0);
+
+  buffer.cur += 5;
+  buffer_seek_next(&buffer);
+  ASSERT(test_sample_second_word,
+         strncmp("Word2", buffer.data + buffer.cur, 5) == 0);
+
+  buffer.cur += 5;
+  buffer_seek_next(&buffer);
+  ASSERT(test_sample_third_word,
+         strncmp("Word3", buffer.data + buffer.cur, 5) == 0);
+
+  buffer_seek_next(&buffer);
+  ASSERT(test_sample_does_not_skip,
+         strncmp("Word3", buffer.data + buffer.cur, 5) == 0);
+
+  free(buffer.data);
+
+  return test_not_at_blank && test_eof_behaviour && test_sample_char &&
+         test_sample_first_word && test_sample_second_word &&
+         test_sample_third_word && test_sample_does_not_skip;
+}
+
