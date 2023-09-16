@@ -2,6 +2,7 @@
 #define TEST_H
 
 #include <stdbool.h>
+#include <stdlib.h>
 
 typedef bool (*test_fn)(void);
 typedef test_fn *test_suite;
@@ -10,6 +11,8 @@ typedef struct Test
   const char *name;
   test_fn fn;
 } test_t;
+
+char *generate_random_data(size_t number);
 
 #define TERM_RED   "\x1b[31m"
 #define TERM_GREEN "\x1b[32m"

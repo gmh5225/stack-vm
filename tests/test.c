@@ -32,6 +32,15 @@ void run_test_suite(const char *suite_name, const test_t *tests, size_t n_tests)
   printf("[%s]: Suite(%s)\n", BOOL_STATUS_TO_STR(suite_passed), suite_name);
 }
 
+char *generate_random_data(size_t number)
+{
+  char *mem = calloc(number + 1, sizeof(mem[0]));
+  for (size_t i = 0; i < number; ++i)
+    mem[i] = rand() % 255;
+  mem[number] = '\0';
+  return mem;
+}
+
 /* Lib testing */
 int main(void)
 {

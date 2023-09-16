@@ -9,6 +9,7 @@
 
 #include "../lib.h"
 
+#include <ctype.h>
 #include <errno.h>
 #include <string.h>
 
@@ -38,17 +39,14 @@ bool test_lib_ARR_SIZE(void)
   return test_1 && test_2;
 }
 
-bool test_lib_buffer_read_file(void)
+bool test_lib_buffer_read_file_fixed(size_t text_size)
 {
-  // Create a mock file (using a random number to ensure we're not
-  // conflicting with something in the workspace
-  const char text[] = "This is some text, I hope buffer will slurp it all!\n"
-                      "Here is another line\n"
-                      "And my final line\n";
+  char *text = generate_random_data(text_size);
 
-  size_t n = rand() % 10;
-  char filepath[30];
-  sprintf(filepath, "tests/TEST_LIB_MOCK_FILE%lu.txt", n);
+  // Create a mock file
+  size_t n = snprintf(NULL, 0, "%lu", text_size);
+  char filepath[30 + n];
+  sprintf(filepath, "tests/TEST_LIB_MOCK_FILE-%lu.txt", text_size);
   FILE *fp = fopen(filepath, "w");
   if (!fp)
   {
@@ -58,7 +56,7 @@ bool test_lib_buffer_read_file(void)
            filepath, strerror(errno));
     return false;
   }
-  fwrite(text, 1, ARR_SIZE(text), fp);
+  fwrite(text, 1, text_size, fp);
   fclose(fp);
 
   fp = fopen(filepath, "r");
@@ -73,9 +71,54 @@ bool test_lib_buffer_read_file(void)
   buffer_t buf = buffer_read_file(filepath, fp);
   fclose(fp);
 
-  ASSERT(test_1, buf.available == ARR_SIZE(text));
-  ASSERT(test_2, strncmp(buf.data, text, ARR_SIZE(text)) == 0);
-
+  ASSERT(test_1, buf.available == text_size);
+  ASSERT(test_2, strncmp(buf.data, text, text_size) == 0);
   free(buf.data);
+  free(text);
+
   return test_1 && test_2;
 }
+
+bool test_lib_buffer_read_file(void)
+{
+  // Create a mock file (using a random number to ensure we're not
+  // conflicting with something in the workspace
+  printf("\t\t[INFO]: test_lib_buffer_read_file: Testing data size %lu\n",
+         1LU << 10);
+  bool test_small = test_lib_buffer_read_file_fixed(1 << 10);
+  printf("\t\t[INFO]: test_lib_buffer_read_file: Testing data size %lu\n",
+         1LU << 20);
+  bool test_medium = test_lib_buffer_read_file_fixed(1 << 20);
+  printf("\t\t[INFO]: test_lib_buffer_read_file: Testing data size %lu\n",
+         1LU << 25);
+  bool test_large = test_lib_buffer_read_file_fixed(1 << 25);
+  return test_small && test_medium && test_large;
+}
+
+bool test_lib_buffer_read_cstr_fixed(size_t text_size)
+{
+  char *text   = generate_random_data(text_size);
+  buffer_t buf = buffer_read_cstr("*test-cstr*", text, text_size);
+
+  ASSERT(test_1, buf.available == text_size);
+  ASSERT(test_2, strncmp(buf.data, text, text_size) == 0);
+  free(buf.data);
+  free(text);
+
+  return test_1 && test_2;
+}
+
+bool test_lib_buffer_read_cstr(void)
+{
+  printf("\t\t[INFO]: test_lib_buffer_read_cstr: Testing data size %lu\n",
+         1LU << 10);
+  bool test_small = test_lib_buffer_read_cstr_fixed(1 << 10);
+  printf("\t\t[INFO]: test_lib_buffer_read_cstr: Testing data size %lu\n",
+         1LU << 20);
+  bool test_medium = test_lib_buffer_read_cstr_fixed(1 << 20);
+  printf("\t\t[INFO]: test_lib_buffer_read_cstr: Testing data size %lu\n",
+         1LU << 25);
+  bool test_large = test_lib_buffer_read_cstr_fixed(1 << 25);
+  return test_small && test_medium && test_large;
+}
+
