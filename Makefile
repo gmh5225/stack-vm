@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=-Wall -Wextra -Wpedantic -Wswitch-enum -ggdb -fsanitize=address -std=c11
 LIBS=
 OBJECTS=lib.o err.o op.o parser.o vm.o
-TEST_MODULES=tests/test-lib.o tests/test.o
+TEST_OBJECTS=tests/test-lib.o tests/test.o
 ARGS=
 OUT=
 
@@ -18,7 +18,7 @@ assembler.out: $(OBJECTS) assembler.o
 interpreter.out: $(OBJECTS) interpreter.o
 	$(CC) $(CFLAGS) $^ -o $@ $(LIBS)
 
-test.out: $(OBJECTS) $(TEST_MODULES)
+test.out: $(OBJECTS) $(TEST_OBJECTS)
 	$(CC) $(CFLAGS) $^ -o $@ $(LIBS)
 
 .PHONY: run
@@ -27,4 +27,4 @@ run: $(OUT)
 
 .PHONY:
 clean:
-	rm -rfv $(OUT) $(OBJECTS) $(TEST_MODULES) tests/*.txt assembler.out interpreter.out test.out
+	rm -rfv $(OUT) $(OBJECTS) $(TEST_OBJECTS) tests/*.txt assembler.out interpreter.out test.out
