@@ -331,3 +331,35 @@ bool test_lib_buffer_space_left(void)
   return test_empty_no_space && test_fresh_full_space &&
          test_halfway_half_space && test_end_no_space && test_past_end_no_space;
 }
+
+bool test_lib_darr_ensure_capacity(void)
+{
+  darr_t darr      = {0};
+  darr.member_size = sizeof(int); // You need SOME member_size
+
+  // If I've got no space i.e. I'm a fresh dynamic array, then to
+  // ensure capacity means to allocate
+  size_t prev_size = 0;
+  darr_ensure_capacity(&darr, 1);
+  ASSERT(test_empty_causes_trigger, prev_size < darr.available);
+  darr_free(&darr);
+
+  // Dynamic array of integers
+  darr_init(&darr, 64, sizeof(int));
+
+  // Sufficient capacity => No changes
+  prev_size = darr.available;
+  darr_ensure_capacity(&darr, 1);
+  ASSERT(test_sufficient_no_change, prev_size == darr.available);
+
+  // "filling" up dynamic array till bounds, then requesting any more
+  // triggers a reallocation
+  darr.used = darr.available - 1;
+  darr_ensure_capacity(&darr, 1);
+  ASSERT(test_filled_triggers_change, prev_size < darr.available);
+
+  darr_free(&darr);
+
+  return test_empty_causes_trigger && test_sufficient_no_change &&
+         test_filled_triggers_change;
+}

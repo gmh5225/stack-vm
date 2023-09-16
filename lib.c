@@ -92,10 +92,11 @@ void darr_free(darr_t *darr)
 void darr_ensure_capacity(darr_t *darr, size_t wanted)
 {
   if (darr->used + wanted >= darr->available)
-    darr->data = reallocarray(
-        darr->data,
-        MAX(darr->used + wanted, darr->available * DARR_REALLOC_MULT),
-        darr->member_size);
+  {
+    darr->available =
+        MAX(darr->used + wanted, darr->available * DARR_REALLOC_MULT);
+    darr->data = reallocarray(darr->data, darr->available, darr->member_size);
+  }
 }
 
 void darr_tighten(darr_t *darr)
