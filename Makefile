@@ -1,20 +1,26 @@
 CC=gcc
-CFLAGS=-Wall -Wextra -Wpedantic -ggdb -fsanitize=address -std=c11
+CFLAGS=-Wall -Wextra -Wpedantic -Wswitch-enum -ggdb -fsanitize=address -std=c11
 LIBS=
-OBJECTS=lib.o err.o op.o parser.o vm.o main.o
-OUT=stack-vm.out
+OBJECTS=lib.o err.o op.o parser.o vm.o
 ARGS=
+OUT=
+
+.PHONY: all
+all: interpreter.out assembler.out
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $^ -o $@ $(LIBS)
 
-$(OUT): $(OBJECTS)
+assembler.out: $(OBJECTS) assembler.o
 	$(CC) $(CFLAGS) $^ -o $@ $(LIBS)
 
-.PHONY:
-clean:
-	rm -rfv $(OUT) $(OBJECTS)
+interpreter.out: $(OBJECTS) interpreter.o
+	$(CC) $(CFLAGS) $^ -o $@ $(LIBS)
 
 .PHONY: run
 run: $(OUT)
-	./$^ $(ARGS)
+	./$(OUT) $(ARGS)
+
+.PHONY:
+clean:
+	rm -rfv $(OUT) assembler.out interpreter.out
