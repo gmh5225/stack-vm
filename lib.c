@@ -64,7 +64,7 @@ void buffer_seek_next(buffer_t *buffer)
 
 bool buffer_at_end(buffer_t buf)
 {
-  return buf.cur >= buf.available || buf.cur == buf.available - 1;
+  return buf.cur >= buf.available - 1;
 }
 
 size_t buffer_space_left(buffer_t buf)
