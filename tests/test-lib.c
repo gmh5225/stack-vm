@@ -122,3 +122,24 @@ bool test_lib_buffer_read_cstr(void)
   return test_small && test_medium && test_large;
 }
 
+bool test_lib_buffer_peek(void)
+{
+  // Two contexts: Normal context and an EOF or empty context
+  size_t text_size = 256;
+  char *text       = generate_random_text(text_size, text_size / 4);
+  buffer_t buffer  = buffer_read_cstr("*test-cstr*", text, text_size);
+
+  ASSERT(test_top_equality, buffer_peek(buffer) == buffer.data[buffer.cur]);
+  buffer_seek_nextline(&buffer);
+  ASSERT(test_next_equality, buffer_peek(buffer) == buffer.data[buffer.cur]);
+  free(text);
+  free(buffer.data);
+
+  char empty_text[] = "";
+  buffer = buffer_read_cstr("*test-cstr*", empty_text, ARR_SIZE(empty_text));
+  ASSERT(test_empty, buffer_peek(buffer) == 0);
+  free(buffer.data);
+
+  return test_top_equality && test_next_equality && test_empty;
+}
+
