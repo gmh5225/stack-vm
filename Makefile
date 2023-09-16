@@ -17,10 +17,13 @@ assembler.out: $(OBJECTS) assembler.o
 interpreter.out: $(OBJECTS) interpreter.o
 	$(CC) $(CFLAGS) $^ -o $@ $(LIBS)
 
+test.out: $(OBJECTS) test.c
+	$(CC) $(CFLAGS) $^ -o $@ $(LIBS)
+
 .PHONY: run
 run: $(OUT)
 	./$(OUT) $(ARGS)
 
 .PHONY:
 clean:
-	rm -rfv $(OUT) assembler.out interpreter.out
+	rm -rfv $(OUT) assembler.out interpreter.out test.out

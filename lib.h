@@ -7,9 +7,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define DEBUG     0
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
-#define MIN(a, b) ((a) > (b) ? (b) : (a))
+#define DEBUG       0
+#define MAX(a, b)   ((a) > (b) ? (a) : (b))
+#define MIN(a, b)   ((a) > (b) ? (b) : (a))
+#define ARR_SIZE(x) (sizeof(x) / sizeof(x[0]))
 
 typedef uint64_t u64;
 typedef int64_t i64;
