@@ -129,7 +129,7 @@ perr_t parse_buffer(buffer_t *buf, op_t **instructions,
       free(darr.data);
       return perr;
     }
-    DARR_APP(&darr, op_t *, parsed);
+    DARR_APP(&darr, op_t, parsed);
     /* printf("data=`%s`, cur=%lu, available=%lu\n", buf->data + buf->cur, */
     /*        buf->cur, buf->available); */
 

@@ -47,11 +47,11 @@ void darr_free(darr_t *);
 void darr_ensure_capacity(darr_t *, size_t);
 void darr_tighten(darr_t *);
 
-#define DARR_APP(DARR, TYPE, OBJ)                 \
-  do                                              \
-  {                                               \
-    darr_ensure_capacity(DARR, 1);                \
-    (((TYPE)(DARR)->data)[(DARR)->used++] = OBJ); \
+#define DARR_APP(DARR, TYPE, OBJ)                   \
+  do                                                \
+  {                                                 \
+    darr_ensure_capacity(DARR, 1);                  \
+    (((TYPE *)(DARR)->data)[(DARR)->used++] = OBJ); \
   } while (0);
 
 #endif
