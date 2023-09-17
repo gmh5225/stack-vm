@@ -19,17 +19,19 @@
 #include <string.h>
 #include <time.h>
 
-void run_test_suite(const char *suite_name, const test_t *tests, size_t n_tests)
+bool run_test_suite(const char *suite_name, const test_t *tests, size_t n_tests)
 {
   printf("[START]: Suite(%s)\n", suite_name);
   bool suite_passed = true;
   for (size_t i = 0; i < n_tests; ++i)
   {
+    printf("\t[TEST #%lu]: Starting `%s`\n", i, tests[i].name);
     bool passed = tests[i].fn();
     printf("\t[%s #%lu]: `%s`\n", BOOL_STATUS_TO_STR(passed), i, tests[i].name);
     suite_passed = suite_passed && passed;
   }
   printf("[%s]: Suite(%s)\n", BOOL_STATUS_TO_STR(suite_passed), suite_name);
+  return suite_passed;
 }
 
 char *generate_random_data(size_t number)
@@ -83,6 +85,10 @@ char *generate_random_text(size_t characters, size_t newlines)
 int main(void)
 {
   srand(time(NULL));
-  run_test_suite("LIB", TEST_LIB_SUITE, ARR_SIZE(TEST_LIB_SUITE));
-  return 0;
+  bool lib_passed =
+      run_test_suite("LIB", TEST_LIB_SUITE, ARR_SIZE(TEST_LIB_SUITE));
+  if (lib_passed)
+    return 0;
+  else
+    return 1;
 }
