@@ -167,8 +167,8 @@ char *perr_generate(perr_t err, buffer_t *buffer)
   const char *err_cstr = perr_as_cstr(err);
   int char_num_size    = snprintf(NULL, 0, "%zu", buffer->cur);
   char *message =
-      calloc((3 + char_num_size + strlen(err_cstr) + strlen(buffer->name)),
+      calloc((4 + char_num_size + strlen(err_cstr) + strlen(buffer->name)),
              sizeof(*message));
-  sprintf(message, "%s:%lu %s", buffer->name, buffer->cur, err_cstr);
+  sprintf(message, "%s:%lu: %s", buffer->name, buffer->cur, err_cstr);
   return message;
 }
