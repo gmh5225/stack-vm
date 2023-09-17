@@ -11,6 +11,7 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <math.h>
 #include <string.h>
 
 bool test_lib_MAX(void)
@@ -401,4 +402,188 @@ bool test_lib_darr_tighten(void)
 
   return test_empty_no_trigger && test_more_space_tightens &&
          test_no_used_frees;
+}
+
+bool test_lib_darr_mem_append(void)
+{
+  darr_t darr = {0};
+
+  // Appending on no buffer means allocation and usage
+  darr_init(&darr, 0, sizeof(int));
+  int i = 1;
+  darr_mem_append(&darr, &i, 1);
+  ASSERT(test_empty_append_allocates, darr.available > 0 && darr.used > 0);
+  ASSERT(test_empty_append_only_adds_1, darr.used == 1);
+
+  darr_free(&darr);
+
+  // Appending n variably sized pieces of memory should be fine
+  size_t max_size = 1024;
+  size_t n        = 16;
+
+  size_t acc_size = 0;
+  size_t sizes[n];
+  char *chunks[n];
+
+  LOG_TEST_START(test_chunks_appended);
+  for (size_t i = 0; i < n; ++i)
+  {
+    sizes[i] = rand() % max_size;
+    LOG_TEST_INFO(test_chunks_appended, "Chunk %lu is of size %lu\n", i,
+                  sizes[i]);
+    chunks[i] = generate_random_data(sizes[i]);
+    acc_size += sizes[i];
+  }
+  LOG_TEST_INFO(test_chunks_appended, "Total data size %lu\n", acc_size);
+
+  darr_init(&darr, 1, sizeof(*chunks[0]));
+  for (size_t i = 0; i < n; ++i)
+    darr_mem_append(&darr, chunks[i], sizes[i]);
+
+  ASSERT(test_chunks_expected_usage, darr.used == acc_size);
+
+  LOG_TEST_START(test_chunks_appended);
+  bool test_chunks_appended = true;
+  size_t acc                = 0;
+  for (size_t i = 0; i < n && test_chunks_appended; ++i)
+  {
+    char *chunk          = chunks[i];
+    size_t size_of_chunk = sizes[i];
+    printf("\t");
+    ASSERT(test_chunks_ith_chunk_is_appended,
+           strncmp(((char *)darr.data) + acc, chunk, size_of_chunk) == 0);
+    test_chunks_appended =
+        test_chunks_appended && test_chunks_ith_chunk_is_appended;
+    acc += size_of_chunk;
+  }
+
+  LOG_TEST_STATUS(test_chunks_appended,
+                  reduce(test_chunks_ith_chunk_is_appended, &));
+
+  darr_free(&darr);
+  for (size_t i = 0; i < n; ++i)
+    free(chunks[i]);
+
+  // Word-by-word sentence construction test using an initially tiny
+  // buffer
+  darr_init(&darr, 1, sizeof(char));
+#define DARR_APP_STR(STR) (darr_mem_append(&darr, STR, strlen(STR)))
+
+  DARR_APP_STR("This ");
+  DARR_APP_STR("is ");
+  DARR_APP_STR("a ");
+  DARR_APP_STR("sentence!");
+
+  ASSERT(test_word_by_word_correct_size, darr.used == 19);
+  ASSERT(test_word_by_word_correct_string,
+         strncmp(darr.data, "This is a sentence!", 19) == 0);
+
+  darr_free(&darr);
+
+  return test_empty_append_allocates && test_empty_append_only_adds_1 &&
+         test_chunks_expected_usage && test_chunks_appended &&
+         test_word_by_word_correct_size && test_word_by_word_correct_string;
+}
+
+bool test_lib_darr_mem_insert(void)
+{
+  darr_t darr = {0};
+
+  // Inserting one element in an empty darr allocates
+  int i = 1;
+  darr_init(&darr, 0, sizeof(i));
+  darr_mem_insert(&darr, &i, 1, 0);
+  ASSERT(test_empty_insert_once_allocates,
+         darr.available == 1 && darr.used == 1);
+  darr_free(&darr);
+
+  // Insertion of multiple elements on an empty darr allocates the
+  // right size
+  size_t data_size = 256;
+  char *data       = generate_random_data(data_size);
+
+  darr_init(&darr, 0, sizeof(*data));
+  darr_mem_insert(&darr, data, 256, 0);
+  free(data);
+
+  LOG_TEST_INFO(test_empty_insert_mult_allocates, "available data %lu\n",
+                darr.available);
+  ASSERT(test_empty_insert_mult_allocates, darr.used == data_size);
+
+  // Inserting in the middle of the darr changes state but does not
+  // allocate
+  char sentence[] = "I am inserting this sentence in the middle of the data!";
+  darr_mem_insert(&darr, sentence, ARR_SIZE(sentence), data_size / 2);
+  // Test for no allocation
+  ASSERT(test_middle_insert_does_not_allocate, darr.used == data_size);
+  // Check that state has been changed
+  ASSERT(test_middle_insert_works, strncmp(((char *)darr.data) + data_size / 2,
+                                           sentence, ARR_SIZE(sentence)) == 0);
+
+  // Inserting another random data buffer of the same size but half
+  // way must force allocation
+  data = generate_random_data(data_size);
+  darr_mem_insert(&darr, data, data_size, data_size / 2);
+
+  // `size` bytes so far, inserting another `size` bytes at `size/2`
+  // means we need to allocate `size/2` extra bytes right?
+  ASSERT(test_large_mid_insert_reallocates_correctly,
+         darr.used == (data_size + data_size / 2));
+  ASSERT(test_large_mid_insert_works,
+         strncmp(((char *)darr.data) + data_size / 2, data, data_size) == 0);
+  free(data);
+
+  darr_free(&darr);
+
+  return test_empty_insert_once_allocates && test_empty_insert_mult_allocates &&
+         test_middle_insert_does_not_allocate && test_middle_insert_works &&
+         test_large_mid_insert_reallocates_correctly &&
+         test_large_mid_insert_works;
+}
+
+bool test_lib_DARR_APP(void)
+{
+  // Empty darr => a reallocation
+  darr_t darr      = {0};
+  darr.member_size = sizeof(char);
+  DARR_APP(&darr, char, 'a');
+  ASSERT(test_empty_insert_reallocates, darr.used == 1 && darr.available > 0);
+  darr_free(&darr);
+
+  // Appending a sentence character by character
+  darr_init(&darr, 0, sizeof(char));
+  char sentence[] = "This is a sentence!\n";
+  for (size_t i = 0; i < ARR_SIZE(sentence); ++i)
+    DARR_APP(&darr, char, sentence[i]);
+  ASSERT(test_sentence_uses_right_space, darr.used == ARR_SIZE(sentence));
+  ASSERT(test_sentence_works,
+         strncmp(((char *)darr.data), sentence, ARR_SIZE(sentence)) == 0);
+  // Testing if amortized constant big O space is true (by allocating
+  // more space than necessary)
+  ASSERT(test_sentence_allocated_space,
+         darr.available == (1LU << ((size_t)ceil(log2(ARR_SIZE(sentence))))));
+  darr_free(&darr);
+
+  // Appending random data character by character works as well
+  darr_init(&darr, 0, sizeof(char));
+  size_t data_size = 250;
+  LOG_TEST_INFO(test_rand_data *, "data_size=%lu\n", data_size);
+  char *data = generate_random_data(data_size);
+  for (size_t i = 0; i < data_size; ++i)
+    DARR_APP(&darr, char, data[i]);
+
+  ASSERT(test_rand_data_uses_right_space, darr.used == data_size);
+  ASSERT(test_rand_data_works,
+         strncmp(((char *)darr.data), data, data_size) == 0);
+  // Testing if amortized constant big O space is true (by allocating
+  // more space than necessary)
+  ASSERT(test_rand_data_allocated_space,
+         darr.available == (1LU << ((size_t)ceil(log2(data_size)))));
+  free(data);
+  darr_free(&darr);
+
+  return test_empty_insert_reallocates && test_sentence_uses_right_space &&
+         test_sentence_works && test_sentence_allocated_space &&
+         test_rand_data_uses_right_space && test_rand_data_works &&
+         test_rand_data_allocated_space;
 }

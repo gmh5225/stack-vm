@@ -34,9 +34,9 @@ static const test_t TEST_LIB_SUITE[] = {
     CREATE_TEST(test_lib_buffer_space_left),
     CREATE_TEST(test_lib_darr_ensure_capacity),
     CREATE_TEST(test_lib_darr_tighten),
-    /* CREATE_TEST(test_lib_darr_mem_append), */
-    /* CREATE_TEST(test_lib_darr_mem_insert), */
-    /* CREATE_TEST(test_lib_DARR_APP), */
+    CREATE_TEST(test_lib_darr_mem_append),
+    CREATE_TEST(test_lib_darr_mem_insert),
+    CREATE_TEST(test_lib_DARR_APP),
 };
 
 #endif

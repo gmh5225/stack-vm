@@ -114,7 +114,9 @@ void darr_tighten(darr_t *darr)
 void darr_mem_append(darr_t *darr, void *ptr, size_t size)
 {
   darr_ensure_capacity(darr, size);
-  memcpy(darr->data + darr->used, ptr, size * sizeof(darr->member_size));
+  memcpy(darr->data + (darr->member_size * darr->used), ptr,
+         size * darr->member_size);
+  darr->used += size;
 }
 
 void darr_mem_insert(darr_t *darr, void *ptr, size_t size, size_t where)
@@ -123,7 +125,12 @@ void darr_mem_insert(darr_t *darr, void *ptr, size_t size, size_t where)
   if (where > darr->available)
     return;
   else if (where + size > darr->available)
+  {
+    // memcpy will later add these directly, so we can increase used
     darr_ensure_capacity(darr, where + size - darr->available);
+    darr->used = where + size;
+  }
 
-  memcpy(darr->data + where, ptr, size * sizeof(darr->member_size));
+  memcpy(darr->data + (darr->member_size * where), ptr,
+         size * darr->member_size);
 }

@@ -34,7 +34,7 @@ bool buffer_at_end(buffer_t);
 size_t buffer_space_left(buffer_t);
 
 /* Expandable generic buffers */
-#define DARR_REALLOC_MULT 1.5
+#define DARR_REALLOC_MULT 2
 #define DARR_INITAL_SIZE  64
 typedef struct
 {
