@@ -37,5 +37,8 @@ void op_print(op_t op, FILE *fp)
   case OP_LABEL:
     fprintf(fp, "OP_LABEL(%" PRId64 ")", op.operand);
     break;
+  case NUMBER_OF_OPERATORS:
+    fputs("", fp);
+    break;
   }
 }

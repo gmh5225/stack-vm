@@ -104,6 +104,7 @@ err_t vm_execute(vm_t *vm)
       return ERR_LABEL_OVERFLOW;
     vm->iptr = vm->labels[op.operand];
     break;
+  case NUMBER_OF_OPERATORS:
   default:
     return ERR_ILLEGAL_INSTRUCTION;
   }

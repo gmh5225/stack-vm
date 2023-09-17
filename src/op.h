@@ -18,6 +18,8 @@ typedef struct
     OP_LABEL,
     OP_JUMP_REL,
     OP_JUMP_LABEL,
+
+    NUMBER_OF_OPERATORS,
   } opcode;
 
   i64 operand;
