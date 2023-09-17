@@ -9,6 +9,7 @@
 #include "../src/vm.h"
 
 #include "./test-lib.h"
+#include "./test-op.h"
 #include "./test.h"
 
 #include <assert.h>
@@ -87,7 +88,8 @@ int main(void)
   srand(time(NULL));
   bool lib_passed =
       run_test_suite("LIB", TEST_LIB_SUITE, ARR_SIZE(TEST_LIB_SUITE));
-  if (lib_passed)
+  bool op_passed = run_test_suite("OP", TEST_OP_SUITE, ARR_SIZE(TEST_OP_SUITE));
+  if (lib_passed && op_passed)
     return 0;
   else
     return 1;
