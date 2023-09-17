@@ -34,6 +34,7 @@ const char *err_as_cstr(err_t e)
   case ERR_INTEGER_UNDERFLOW:
     return "ERR_INTEGER_UNDERFLOW";
     break;
+  case NUMBER_OF_ERRORS:
   default:
     return "";
     break;

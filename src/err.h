@@ -11,6 +11,8 @@ typedef enum
   ERR_ILLEGAL_INSTRUCTION,
   ERR_INTEGER_OVERFLOW,
   ERR_INTEGER_UNDERFLOW,
+
+  NUMBER_OF_ERRORS,
 } err_t;
 
 const char *err_as_cstr(err_t);
