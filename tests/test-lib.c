@@ -34,7 +34,7 @@ bool test_lib_ARR_SIZE(void)
 
   const size_t test_ints_size = rand() % 1024;
   int64_t test_ints[test_ints_size];
-  printf("\t\t[INFO]: test_lib_ARR_SIZE: test_ints=%lu\n", test_ints_size);
+  LOG_TEST_INFO(test_2, "test_ints=%lu\n", test_ints_size);
   ASSERT(test_2, ARR_SIZE(test_ints) == test_ints_size);
   return test_1 && test_2;
 }
@@ -50,10 +50,8 @@ bool test_lib_buffer_read_file_fixed(size_t text_size)
   FILE *fp = fopen(filepath, "w");
   if (!fp)
   {
-    printf("\t\t[INFO]: test_lib_buffer_read_file: Could not open file (to "
-           "write) `%s`: "
-           "%s\n",
-           filepath, strerror(errno));
+    LOG_TEST_INFO(__func__, "Could not open file (to write) `%s`: %s\n",
+                  filepath, strerror(errno));
     return false;
   }
   fwrite(text, 1, text_size, fp);
@@ -62,16 +60,16 @@ bool test_lib_buffer_read_file_fixed(size_t text_size)
   fp = fopen(filepath, "r");
   if (!fp)
   {
-    printf("\t\t[INFO]: test_lib_buffer_read_file: Could not open file (to "
-           "read) `%s`: "
-           "%s\n",
-           filepath, strerror(errno));
+    LOG_TEST_INFO(__func__, "Could not open file (to read) `%s`: %s\n",
+                  filepath, strerror(errno));
     return false;
   }
   buffer_t buf = buffer_read_file(filepath, fp);
   fclose(fp);
 
+  printf("\t");
   ASSERT(test_1, buf.available == text_size);
+  printf("\t");
   ASSERT(test_2, strncmp(buf.data, text, text_size) == 0);
   free(buf.data);
   free(text);
@@ -81,17 +79,21 @@ bool test_lib_buffer_read_file_fixed(size_t text_size)
 
 bool test_lib_buffer_read_file(void)
 {
-  // Create a mock file (using a random number to ensure we're not
-  // conflicting with something in the workspace
-  printf("\t\t[INFO]: test_lib_buffer_read_file: Testing data size %lu\n",
-         1LU << 10);
+  LOG_TEST_START(test_small);
+  LOG_TEST_INFO(test_small, "Testing data size %lu\n", 1LU << 10);
   bool test_small = test_lib_buffer_read_file_fixed(1 << 10);
-  printf("\t\t[INFO]: test_lib_buffer_read_file: Testing data size %lu\n",
-         1LU << 20);
+  LOG_TEST_STATUS(test_small, test_1 & test_2);
+
+  LOG_TEST_START(test_medium);
+  LOG_TEST_INFO(test_medium, "Testing data size %lu\n", 1LU << 20);
   bool test_medium = test_lib_buffer_read_file_fixed(1 << 20);
-  printf("\t\t[INFO]: test_lib_buffer_read_file: Testing data size %lu\n",
-         1LU << 25);
+  LOG_TEST_STATUS(test_medium, test_1 & test_2);
+
+  LOG_TEST_START(test_large);
+  LOG_TEST_INFO(test_large, "Testing data size %lu\n", 1LU << 25);
   bool test_large = test_lib_buffer_read_file_fixed(1 << 25);
+  LOG_TEST_STATUS(test_large, test_1 & test_2);
+
   return test_small && test_medium && test_large;
 }
 
@@ -100,7 +102,9 @@ bool test_lib_buffer_read_cstr_fixed(size_t text_size)
   char *text   = generate_random_data(text_size);
   buffer_t buf = buffer_read_cstr("*test-cstr*", text, text_size);
 
+  printf("\t");
   ASSERT(test_1, buf.available == text_size);
+  printf("\t");
   ASSERT(test_2, strncmp(buf.data, text, text_size) == 0);
   free(buf.data);
   free(text);
@@ -110,15 +114,21 @@ bool test_lib_buffer_read_cstr_fixed(size_t text_size)
 
 bool test_lib_buffer_read_cstr(void)
 {
-  printf("\t\t[INFO]: test_lib_buffer_read_cstr: Testing data size %lu\n",
-         1LU << 10);
+  LOG_TEST_START(test_small);
+  LOG_TEST_INFO(test_small, "Testing data size %lu\n", 1LU << 10);
   bool test_small = test_lib_buffer_read_cstr_fixed(1 << 10);
-  printf("\t\t[INFO]: test_lib_buffer_read_cstr: Testing data size %lu\n",
-         1LU << 20);
+  LOG_TEST_STATUS(test_small, test_1 & test_2);
+
+  LOG_TEST_START(test_medium);
+  LOG_TEST_INFO(test_medium, "Testing data size %lu\n", 1LU << 20);
   bool test_medium = test_lib_buffer_read_cstr_fixed(1 << 20);
-  printf("\t\t[INFO]: test_lib_buffer_read_cstr: Testing data size %lu\n",
-         1LU << 25);
+  LOG_TEST_STATUS(test_medium, test_1 & test_2);
+
+  LOG_TEST_START(test_large);
+  LOG_TEST_INFO(test_large, "Testing data size %lu\n", 1LU << 25);
   bool test_large = test_lib_buffer_read_cstr_fixed(1 << 25);
+  LOG_TEST_STATUS(test_large, test_1 & test_2);
+
   return test_small && test_medium && test_large;
 }
 

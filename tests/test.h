@@ -24,18 +24,23 @@ char *generate_random_text(size_t characters, size_t lines);
 #define BOOL_STATUS_TO_STR(b) \
   (b ? TERM_GREEN "PASSED" TERM_RESET : TERM_RED "FAILED" TERM_RESET)
 
-#if VERBOSE_LOGS
-#define ASSERT(RET_NAME, COND)                                                \
-  bool RET_NAME = (COND);                                                     \
-  if (!RET_NAME)                                                              \
-    printf("\t\t[" TERM_RED "FAILED" TERM_RESET "]: `%s` -> %s\n", #RET_NAME, \
-           #COND);                                                            \
-  else                                                                        \
-    printf("\t\t[" TERM_GREEN "PASSED" TERM_RESET "]: `%s` -> %s\n",          \
-           #RET_NAME, #COND);
-#else
-#define ASSERT(RET_NAME, COND) bool RET_NAME = (COND);
-#endif
+#define LOG_TEST_INFO(TEST_NAME, FORMAT_STRING, ...) \
+  printf("\t\t\t[INFO]: %s: " FORMAT_STRING, #TEST_NAME, __VA_ARGS__)
+
+#define LOG_TEST_START(TEST_NAME) \
+  printf("\t\t[TEST]: Starting `" #TEST_NAME "`\n")
+
+#define ASSERT(TEST_NAME, COND) \
+  bool TEST_NAME = (COND);      \
+  LOG_TEST_STATUS(TEST_NAME, COND)
+
+#define LOG_TEST_STATUS(TEST_NAME, COND)                                       \
+  if (!TEST_NAME)                                                              \
+    printf("\t\t[" TERM_RED "FAILED" TERM_RESET "]: `%s` -> %s\n", #TEST_NAME, \
+           #COND);                                                             \
+  else                                                                         \
+    printf("\t\t[" TERM_GREEN "PASSED" TERM_RESET "]: `%s` -> %s\n",           \
+           #TEST_NAME, #COND);
 
 #define CREATE_TEST(NAME) \
   {                       \
