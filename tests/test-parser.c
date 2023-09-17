@@ -100,6 +100,5 @@ bool test_perr_generate(void)
   return test_perr_cstr && test_perr_cursor && test_perr_filename;
 }
 
-bool test_perr_generate(void);
 bool test_parse_line(void);
 bool test_parse_buffer(void);
