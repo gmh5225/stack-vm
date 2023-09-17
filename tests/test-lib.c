@@ -48,7 +48,7 @@ bool test_lib_buffer_read_file_fixed(size_t text_size)
   size_t n = snprintf(NULL, 0, "%lu", text_size);
   char filepath[30 + n];
   sprintf(filepath, "tests/TEST_LIB_MOCK_FILE-%lu.txt", text_size);
-  FILE *fp = fopen(filepath, "w");
+  FILE *fp = fopen(filepath, "wb");
   if (!fp)
   {
     LOG_TEST_INFO(__func__, "Could not open file (to write) `%s`: %s\n",
@@ -442,7 +442,6 @@ bool test_lib_darr_mem_append(void)
 
   ASSERT(test_chunks_expected_usage, darr.used == acc_size);
 
-  LOG_TEST_START(test_chunks_appended);
   bool test_chunks_appended = true;
   size_t acc                = 0;
   for (size_t i = 0; i < n && test_chunks_appended; ++i)
