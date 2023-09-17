@@ -20,6 +20,8 @@ typedef enum
   PERR_UNEXPECTED_OPERATOR,
   PERR_UNEXPECTED_OPERAND,
   PERR_EOF,
+
+  NUMBER_OF_PERRORS,
 } perr_t;
 
 const char *perr_as_cstr(perr_t err);

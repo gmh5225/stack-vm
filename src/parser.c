@@ -155,6 +155,8 @@ const char *perr_as_cstr(perr_t err)
     return "PERR_EOF";
   case PERR_EXPECTED_INTEGER:
     return "PERR_EXPECTED_INTEGER";
+  case NUMBER_OF_PERRORS:
+    // This really shouldn't happen
   default:
     return "";
   }
