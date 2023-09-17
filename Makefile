@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-Wall -Wextra -Wpedantic -Wswitch-enum -ggdb -fsanitize=address -std=c11
-LIBS=
+LIBS=-lm
 OBJECTS=src/lib.o src/err.o src/op.o src/parser.o src/vm.o
 TEST_OBJECTS=tests/test-lib.o tests/test.o
 ARGS=
