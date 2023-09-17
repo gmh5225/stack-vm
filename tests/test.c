@@ -10,6 +10,7 @@
 
 #include "./test-lib.h"
 #include "./test-op.h"
+#include "./test-parser.h"
 #include "./test.h"
 
 #include <assert.h>
@@ -89,6 +90,8 @@ int main(void)
   bool lib_passed =
       run_test_suite("LIB", TEST_LIB_SUITE, ARR_SIZE(TEST_LIB_SUITE));
   bool op_passed = run_test_suite("OP", TEST_OP_SUITE, ARR_SIZE(TEST_OP_SUITE));
+  bool parser_passed =
+      run_test_suite("PARSER", TEST_PARSER_SUITE, ARR_SIZE(TEST_PARSER_SUITE));
   if (lib_passed && op_passed)
     return 0;
   else
