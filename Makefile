@@ -23,7 +23,11 @@ test.out: $(OBJECTS) $(TEST_OBJECTS)
 
 .PHONY: run
 run: $(OUT)
-	./$(OUT) $(ARGS)
+	./$^ $(ARGS)
+
+.PHONY: test
+test: test.out
+	./$^ $(ARGS)
 
 .PHONY:
 clean:
