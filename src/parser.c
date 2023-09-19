@@ -45,6 +45,10 @@ perr_t parse_line(buffer_t *buf, op_t *op)
   // Bring us to the first "token"
   buffer_seek_next(buf);
 
+  // If at end, fail
+  if (buffer_at_end(*buf) != BUFFER_OK)
+    return PERR_EOF;
+
   // Find the end of operator
   size_t end_of_operator = strcspn(buf->data + buf->cur, " \n\0");
   if (memcmp(buf->data + buf->cur, "noop", 4) == 0)
