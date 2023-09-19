@@ -449,8 +449,10 @@ bool test_lib_darr_mem_append(void)
     char *chunk          = chunks[i];
     size_t size_of_chunk = sizes[i];
     printf("\t");
+    // NOTE: darr.data is a void *, we want to work in bytes, so we need
+    // the cast
     ASSERT(test_chunks_ith_chunk_is_appended,
-           memcmp(darr.data + acc, chunk, size_of_chunk) == 0);
+           memcmp(((char *)darr.data) + acc, chunk, size_of_chunk) == 0);
     test_chunks_appended =
         test_chunks_appended && test_chunks_ith_chunk_is_appended;
     acc += size_of_chunk;
@@ -515,9 +517,13 @@ bool test_lib_darr_mem_insert(void)
   darr_mem_insert(&darr, sentence, ARR_SIZE(sentence), data_size / 2);
   // Test for no allocation
   ASSERT(test_middle_insert_does_not_allocate, darr.used == data_size);
+
   // Check that state has been changed
-  ASSERT(test_middle_insert_works,
-         memcmp(darr.data + data_size / 2, sentence, ARR_SIZE(sentence)) == 0);
+
+  // NOTE: darr.data is a void *, we want to work in bytes, so we need
+  // the cast
+  ASSERT(test_middle_insert_works, memcmp(((char *)darr.data) + data_size / 2,
+                                          sentence, ARR_SIZE(sentence)) == 0);
 
   // Inserting another random data buffer of the same size but half
   // way must force allocation
@@ -528,8 +534,11 @@ bool test_lib_darr_mem_insert(void)
   // means we need to allocate `size/2` extra bytes right?
   ASSERT(test_large_mid_insert_reallocates_correctly,
          darr.used == (data_size + data_size / 2));
+
+  // NOTE: darr.data is a void *, we want to work in bytes, so we need
+  // the cast
   ASSERT(test_large_mid_insert_works,
-         memcmp(darr.data + data_size / 2, data, data_size) == 0);
+         memcmp(((char *)darr.data) + data_size / 2, data, data_size) == 0);
   free(data);
 
   darr_free(&darr);
