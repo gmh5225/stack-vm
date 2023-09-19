@@ -241,7 +241,7 @@ bool test_lib_buffer_seek_nextline(void)
                   "\n"
                   "a\n"
                   "\n"
-                  "      stop here";
+                  "      this whole line is left";
 
   size_t sample_text_size = ARR_SIZE(sample);
   buffer = buffer_read_cstr("*test-cstr*", sample, sample_text_size);
@@ -268,11 +268,12 @@ bool test_lib_buffer_seek_nextline(void)
 
   buffer_seek_nextline(&buffer);
   ASSERT(test_sample_fifth_sentence,
-         memcmp(buffer.data + buffer.cur, "stop here", 9) == 0);
+         memcmp(buffer.data + buffer.cur, "      this whole line is left",
+                29) == 0);
 
-  buffer_seek_next(&buffer);
   ASSERT(test_sample_does_not_skip,
-         memcmp(buffer.data + buffer.cur, "stop here", 9) == 0);
+         memcmp(buffer.data + buffer.cur, "      this whole line is left",
+                29) == 0);
 
   free(buffer.data);
 
