@@ -27,6 +27,7 @@ typedef enum
 const char *perr_as_cstr(perr_t err);
 char *perr_generate(perr_t err, buffer_t *buf);
 
+perr_t parse_i64(buffer_t *buf, i64 *ret);
 perr_t parse_line(buffer_t *, op_t *);
 perr_t parse_buffer(buffer_t *, op_t **, u64 *);
 
