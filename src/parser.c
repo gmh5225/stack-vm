@@ -42,7 +42,8 @@ perr_t parse_i64(buffer_t *buf, i64 *ret)
 
 perr_t parse_line(buffer_t *buf, op_t *op)
 {
-  // Assume we are at an operator
+  // Bring us to the first "token"
+  buffer_seek_next(buf);
 
   // Find the end of operator
   size_t end_of_operator = strcspn(buf->data + buf->cur, " \n");
