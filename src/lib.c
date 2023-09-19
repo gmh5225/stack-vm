@@ -48,16 +48,21 @@ char buffer_peek(buffer_t buf)
   return 0;
 }
 
+bool is_newline(char c)
+{
+  return c == '\r' || c == '\n';
+}
+
 void buffer_seek_nextline(buffer_t *buffer)
 {
-  for (; !buffer_at_end(*buffer) && isspace(buffer->data[buffer->cur]);
+  for (; !buffer_at_end(*buffer) && is_newline(buffer_peek(*buffer));
        ++buffer->cur)
     continue;
 }
 
 void buffer_seek_next(buffer_t *buffer)
 {
-  for (; !buffer_at_end(*buffer) && isblank(buffer->data[buffer->cur]);
+  for (; !buffer_at_end(*buffer) && isblank(buffer_peek(*buffer));
        ++buffer->cur)
     continue;
 }
