@@ -43,6 +43,24 @@ virtual machine instance.  Also produces errors.
 =test.out=: Takes no input.  Runs unit tests.  Look for ~#define
 VERBOSE_LOGS N~ and set it to 1 to produce more verbose logs.
 * Tasks
+** TODO Implement a tagging scheme
+A tagging scheme allows us to implement a variety of types for data in
+the virtual machine.  A big problem with, say, a pointer tagging
+scheme is that we must waste a ton of space in the assembler for small
+types.  For example, a boolean needs only a bit to work but we must
+force it to waste 63 bits of extra space just to make it uniform.  A
+character (at least the C style ones) only need a byte, but we'll need
+to encode 7 waste bytes to make it uniform.
+
+Here's a really simple scheme:
++ A "tag" byte which tells the interpreter what type of data and how
+  many bytes of data the subsequent operand is
++ The payload
+
+A byte is over 256 values: I don't think we're going to need 256 types
+but I don't want to have to do some weird "nibble reading" and it
+allows us to reserve a ton of types or special things for future me to
+use.
 ** TODO Write a better in memory assembler
 [[file:src/vm.c::void vm_write_program(vm_t *vm, FILE *fp)]]
 
