@@ -296,7 +296,7 @@ bool test_lib_buffer_at_end(void)
   buf              = buffer_read_cstr("*test-cstr*", text, text_size);
   free(text);
 
-  buf.cur = buf.available - 1;
+  buf.cur = buf.available;
   ASSERT(test_penultimate, buffer_at_end(buf));
   buf.cur = buf.available;
   ASSERT(test_ultimate, buffer_at_end(buf));
