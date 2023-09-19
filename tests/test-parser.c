@@ -71,6 +71,7 @@ bool test_perr_generate(void)
     buf.cur              = inputs_test_perr_cursor[i];
     char *output         = perr_generate(perr, &buf);
     const char *expected = expected_outputs_test_perr_cursor[i];
+    LOG_TEST_INFO(test_ith_perr_cursor, "Expected=%s\n", expected);
     printf("\t");
     ASSERT(test_ith_perr_cursor,
            memcmp(expected, output, strlen(expected)) == 0);
@@ -86,6 +87,8 @@ bool test_perr_generate(void)
       "Another name:128: PERR_ILLEGAL_OPERATOR";
   perr_t perr  = PERR_ILLEGAL_OPERATOR;
   char *output = perr_generate(perr, &buf);
+  LOG_TEST_INFO(test_perr_filename, "Expected=%s\n",
+                expected_output_test_filename);
   ASSERT(test_perr_filename,
          memcmp(expected_output_test_filename, output,
                 strlen(expected_output_test_filename)) == 0);
@@ -230,6 +233,10 @@ bool test_parse_line(void)
     perr_t perr             = parse_line(&push_buffer, &ret);
     const op_t expected_out = expected_ops[i];
 
+    LOG_TEST_INFO(test_ith_parsed_, "Expected=%s", "");
+    op_print(expected_out, stdout);
+    puts("");
+
     printf("\t");
     // Check that buffer is pushed to the end (completely parsed buffer)
     ASSERT(test_ith_parsed_completely, buffer_at_end(push_buffer) != BUFFER_OK);
@@ -289,6 +296,10 @@ bool test_parse_line(void)
     op_t ret                = {0};
     perr_t perr             = parse_line(&push_buffer, &ret);
     const op_t expected_out = expected_whitespace_outputs[i];
+
+    LOG_TEST_INFO(test_ith_whitespace_parsed_, "Expected=%s", "");
+    op_print(expected_out, stdout);
+    puts("");
 
     printf("\t");
     // Check that buffer is pushed to the end (completely parsed buffer)
@@ -352,6 +363,10 @@ bool test_parse_line(void)
     perr_t perr       = parse_line(&buffer, &ret);
     op_t expected_out = expected_line_by_line_output[i];
 
+    LOG_TEST_INFO(test_ith_line_by_line_, "Expected=%s", "");
+    op_print(expected_out, stdout);
+    puts("");
+
     printf("\t");
     // Check that operator is correct
     ASSERT(test_ith_line_by_line_operator, ret.opcode == expected_out.opcode);
@@ -397,7 +412,8 @@ bool test_parse_line(void)
 
     op_t op  = {0};
     perr_t p = parse_line(&buffer, &op);
-    printf("%s\n", perr_as_cstr(p));
+
+    LOG_TEST_INFO(test_ith_line_by_line_, "Expected=%s\n", perr_as_cstr(p));
     printf("\t");
     ASSERT(test_ith_perr_no_operand, p == PERR_EXPECTED_OPERAND);
     test_perr_no_operand = test_perr_no_operand && test_ith_perr_no_operand;
@@ -421,6 +437,7 @@ bool test_parse_line(void)
     op_t op  = {0};
     perr_t p = parse_line(&buffer, &op);
 
+    LOG_TEST_INFO(test_ith_line_by_line_, "Expected=%s\n", perr_as_cstr(p));
     printf("\t");
     ASSERT(test_ith_perr_unexpected_operand, p == PERR_UNEXPECTED_OPERAND);
     test_perr_unexpected_operand =
@@ -445,6 +462,7 @@ bool test_parse_line(void)
     op_t op  = {0};
     perr_t p = parse_line(&buffer, &op);
 
+    LOG_TEST_INFO(test_ith_line_by_line_, "Expected=%s\n", perr_as_cstr(p));
     printf("\t");
     ASSERT(test_ith_perr_not_an_operator, p == PERR_ILLEGAL_OPERATOR);
     test_perr_not_an_operator =
