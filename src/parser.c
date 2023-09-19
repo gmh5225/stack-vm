@@ -46,7 +46,7 @@ perr_t parse_line(buffer_t *buf, op_t *op)
   buffer_seek_next(buf);
 
   // Find the end of operator
-  size_t end_of_operator = strcspn(buf->data + buf->cur, " \n");
+  size_t end_of_operator = strcspn(buf->data + buf->cur, " \n\0");
   if (memcmp(buf->data + buf->cur, "noop", 4) == 0)
   {
     buf->cur += end_of_operator;
