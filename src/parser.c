@@ -124,6 +124,9 @@ NO_OPERAND:
 perr_t parse_buffer(buffer_t *buf, op_t **instructions,
                     u64 *instructions_parsed)
 {
+  if (buffer_at_end(*buf) != BUFFER_OK)
+    return PERR_EOF;
+
   darr_t darr = {0};
   darr_init(&darr, DARR_INITAL_SIZE, sizeof(**instructions));
   size_t parsed;
@@ -133,16 +136,12 @@ perr_t parse_buffer(buffer_t *buf, op_t **instructions,
   {
     op_t parsed = {0};
     perr_t perr = parse_line(buf, &parsed);
-    /* op_print(parsed, stdout); */
-    /* puts(""); */
     if (perr != PERR_OK)
     {
       free(darr.data);
       return perr;
     }
     DARR_APP(&darr, op_t, parsed);
-    /* printf("data=`%s`, cur=%lu, available=%lu\n", buf->data + buf->cur, */
-    /*        buf->cur, buf->available); */
 
     buffer_seek_nextline(buf);
   }
