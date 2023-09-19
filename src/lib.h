@@ -7,7 +7,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define DEBUG       0
+#define DEBUG         0
+#define IS_BIG_ENDIAN 0
+
 #define MAX(a, b)   ((a) > (b) ? (a) : (b))
 #define MIN(a, b)   ((a) > (b) ? (b) : (a))
 #define ARR_SIZE(x) (sizeof(x) / sizeof(x[0]))

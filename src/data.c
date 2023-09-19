@@ -70,8 +70,13 @@ size_t data_write(data_t datum, byte *bytes)
   case DATA_INT:
   case DATA_UINT:
   case DATA_DOUBLE:
+#if IS_BIG_ENDIAN
     for (size_t i = 1, shift = 56; i < 9; ++i, shift -= 8)
       bytes[i] = ((datum.payload.as_uint >> shift) & 0xff);
+#else
+    for (size_t i = 1, shift = 0; i < 9; ++i, shift += 8)
+      bytes[i] = ((datum.payload.as_uint >> shift) & 0xff);
+#endif
     return 9;
     break;
   }
@@ -106,8 +111,13 @@ void data_print(data_t d)
 uint64_t read_u64_from_bytes(byte *bytes)
 {
   u64 acc = 0;
+#if IS_BIG_ENDIAN
   for (size_t i = 0, shift = 56; i < 8; ++i, shift -= 8)
     acc += (((u64)bytes[i]) << shift);
+#else
+  for (size_t i = 0, shift = 0; i < 8; ++i, shift += 8)
+    acc += (((u64)bytes[i]) << shift);
+#endif
   return acc;
 }
 
