@@ -27,7 +27,7 @@ bool test_perr_generate(void)
   // let's test that with some expected outputs.
   const char *expected_outputs_test_perr_cstr[] = {
       "*test-perr*:0: PERR_OK",
-      "*test-perr*:0: PERR_EXPECTED_INTEGER",
+      "*test-perr*:0: PERR_EXPECTED_OPERAND",
       "*test-perr*:0: PERR_UNEXPECTED_OPERATOR",
       "*test-perr*:0: PERR_UNEXPECTED_OPERAND",
       "*test-perr*:0: PERR_EOF",
