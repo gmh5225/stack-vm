@@ -30,7 +30,12 @@ buffer_t buffer_read_cstr(const char *, const char *str, size_t);
 char buffer_peek(buffer_t);
 void buffer_seek_next(buffer_t *);
 void buffer_seek_nextline(buffer_t *);
-bool buffer_at_end(buffer_t);
+enum BufferState
+{
+  BUFFER_OK,
+  BUFFER_AT_END,
+  BUFFER_PAST_END
+} buffer_at_end(buffer_t);
 size_t buffer_space_left(buffer_t);
 
 /* Expandable generic buffers */

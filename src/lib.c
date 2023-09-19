@@ -44,7 +44,7 @@ buffer_t buffer_read_cstr(const char *name, const char *str, size_t size)
 
 char buffer_peek(buffer_t buf)
 {
-  if (!buffer_at_end(buf))
+  if (buffer_at_end(buf) == BUFFER_OK)
     return buf.data[buf.cur];
   return 0;
 }
@@ -56,28 +56,32 @@ bool is_newline(char c)
 
 void buffer_seek_nextline(buffer_t *buffer)
 {
-  for (; !buffer_at_end(*buffer) && is_newline(buffer_peek(*buffer));
+  for (;
+       buffer_at_end(*buffer) == BUFFER_OK && is_newline(buffer_peek(*buffer));
        ++buffer->cur)
     continue;
 }
 
 void buffer_seek_next(buffer_t *buffer)
 {
-  for (; !buffer_at_end(*buffer) && isblank(buffer_peek(*buffer));
+  for (; buffer_at_end(*buffer) == BUFFER_OK && isblank(buffer_peek(*buffer));
        ++buffer->cur)
     continue;
 }
 
-bool buffer_at_end(buffer_t buf)
+enum BufferState buffer_at_end(buffer_t buf)
 {
-  if (buf.available == 0)
-    return true;
-  return buf.cur >= buf.available;
+  if (buf.available == 0 || buf.cur > buf.available)
+    return BUFFER_PAST_END;
+  else if (buf.cur == buf.available)
+    return BUFFER_AT_END;
+  else
+    return BUFFER_OK;
 }
 
 size_t buffer_space_left(buffer_t buf)
 {
-  if (buffer_at_end(buf))
+  if (buffer_at_end(buf) != BUFFER_OK)
     return 0;
   return buf.available - buf.cur;
 }
