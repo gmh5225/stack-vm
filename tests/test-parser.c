@@ -118,6 +118,12 @@ bool test_parse_line(void)
 
   bool test_parsed_completely = true, test_parsed_operator = true,
        test_parsed_operand = true, test_parsed_perr = true;
+
+  LOG_TEST_START(test_parsed_completely);
+  LOG_TEST_START(test_parsed_operator);
+  LOG_TEST_START(test_parsed_operand);
+  LOG_TEST_START(test_parsed_perr);
+
   for (size_t i = 0; i < ARR_SIZE(test_ops); ++i)
   {
     const char *test_data = test_ops[i];
@@ -173,6 +179,11 @@ bool test_parse_line(void)
        test_whitespace_parsed_operand    = true,
        test_whitespace_parsed_perr       = true;
 
+  LOG_TEST_START(test_whitespace_completely);
+  LOG_TEST_START(test_whitespace_operator);
+  LOG_TEST_START(test_whitespace_operand);
+  LOG_TEST_START(test_whitespace_perr);
+
   for (size_t i = 0; i < ARR_SIZE(test_whitespace_inputs); ++i)
   {
     const char *test_data = test_whitespace_inputs[i];
@@ -221,7 +232,7 @@ bool test_parse_line(void)
   LOG_TEST_STATUS(test_whitespace_parsed_perr,
                   reduce(test_ith_whitespace_parsed_perr, &));
 
-  // Finally, test if I can parse line by line
+  // Test if I can parse line by line
   const char test_line_by_line_input[]      = "push 10\n"
                                               "push 20\n"
                                               "dup 10\n";
@@ -233,6 +244,10 @@ bool test_parse_line(void)
 
   bool test_line_by_line_operator = true, test_line_by_line_operand = true,
        test_line_by_line_perr = true;
+
+  LOG_TEST_START(test_line_by_line_operator);
+  LOG_TEST_START(test_line_by_line_operand);
+  LOG_TEST_START(test_line_by_line_perr);
 
   for (size_t i = 0; buffer_at_end(buffer) == BUFFER_OK; ++i)
   {
@@ -262,6 +277,13 @@ bool test_parse_line(void)
   }
 
   free(buffer.data);
+
+  LOG_TEST_STATUS(test_line_by_line_operator,
+                  reduce(test_ith_line_by_line_operator, &));
+  LOG_TEST_STATUS(test_line_by_line_operand,
+                  reduce(test_ith_line_by_line_operand, &));
+  LOG_TEST_STATUS(test_line_by_line_perr,
+                  reduce(test_ith_line_by_line_perr, &));
 
   return test_parsed_completely && test_parsed_operator &&
          test_parsed_operand && test_parsed_perr &&
