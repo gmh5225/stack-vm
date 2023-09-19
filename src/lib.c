@@ -34,10 +34,11 @@ buffer_t buffer_read_cstr(const char *name, const char *str, size_t size)
   buffer_t buffer  = {0};
   size_t data_size = sizeof(buffer.data[0]);
   buffer.name      = name;
-  buffer.data      = calloc(size, data_size);
+  buffer.data      = calloc(size, data_size + 1);
   buffer.available = size;
   buffer.cur       = 0;
   memcpy(buffer.data, str, data_size * size);
+  buffer.data[data_size * size] = '\0';
   return buffer;
 }
 
@@ -71,7 +72,7 @@ bool buffer_at_end(buffer_t buf)
 {
   if (buf.available == 0)
     return true;
-  return buf.cur >= buf.available - 1;
+  return buf.cur >= buf.available;
 }
 
 size_t buffer_space_left(buffer_t buf)
