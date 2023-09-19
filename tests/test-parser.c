@@ -96,5 +96,63 @@ bool test_perr_generate(void)
   return test_perr_cstr && test_perr_cursor && test_perr_filename;
 }
 
-bool test_parse_line(void);
+bool test_parse_line(void)
+{
+  // Tests of each available opcode
+  const char *op_tests[] = {"noop\n",    "halt\n",  "push 10\n",
+                            "plus\n",    "dup 1\n", "print\n",
+                            "label 1\n", "jmp 1\n", "jmp l1\n"};
+
+  const op_t expected_ops[] = {{0},
+                               OP_CREATE_HALT,
+                               OP_CREATE_PUSH(10),
+                               OP_CREATE_PLUS,
+                               OP_CREATE_DUP(1),
+                               OP_CREATE_PRINT,
+                               OP_CREATE_LABEL(1),
+                               OP_CREATE_JMP_REL(1),
+                               OP_CREATE_JMP_LBL(1)};
+
+  assert(ARR_SIZE(op_tests) == NUMBER_OF_OPERATORS &&
+         ARR_SIZE(op_tests) == ARR_SIZE(expected_ops) &&
+         "opcode_tests is outdated");
+
+  bool test_parsed_completely = true, test_parsed_operator = true,
+       test_parsed_operand = true;
+  for (size_t i = 0; i < ARR_SIZE(op_tests); ++i)
+  {
+    const char *test_data = op_tests[i];
+    buffer_t push_buffer =
+        buffer_read_cstr("*test-parse-line*", test_data, strlen(test_data));
+    op_t ret = {0};
+    parse_line(&push_buffer, &ret);
+    const op_t expected_out = expected_ops[i];
+
+    printf("\t");
+    // Check that buffer is pushed to the end (completely parsed buffer)
+    ASSERT(test_ith_parsed_completely, buffer_at_end(push_buffer));
+    test_parsed_completely =
+        test_parsed_completely && test_ith_parsed_completely;
+
+    printf("\t");
+    // Check that operator is correct
+    ASSERT(test_ith_parsed_operator, ret.opcode == expected_out.opcode);
+    test_parsed_operator = test_parsed_operator && test_ith_parsed_operator;
+
+    printf("\t");
+    // Check that operand is correct
+    ASSERT(test_ith_parsed_operand, ret.operand == expected_out.operand);
+    test_parsed_operand = test_parsed_operand && test_ith_parsed_operand;
+
+    free(push_buffer.data);
+  }
+
+  LOG_TEST_STATUS(test_parsed_completely,
+                  reduce(test_ith_parsed_completely, &));
+  LOG_TEST_STATUS(test_parsed_operator, reduce(test_ith_parsed_operator, &));
+  LOG_TEST_STATUS(test_parsed_operand, reduce(test_ith_parsed_operand, &));
+
+  return test_parsed_completely && test_parsed_operator && test_parsed_operand;
+}
+
 bool test_parse_buffer(void);
