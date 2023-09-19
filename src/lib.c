@@ -114,7 +114,10 @@ void darr_tighten(darr_t *darr)
 void darr_mem_append(darr_t *darr, void *ptr, size_t size)
 {
   darr_ensure_capacity(darr, size);
-  memcpy(darr->data + (darr->member_size * darr->used), ptr,
+  // NOTE: We need this cast to move byte-by-byte.  Of course GNU C
+  // allows (void *) to have byte-like pointer arithemtic but we gotta
+  // be good.
+  memcpy(((int8_t *)darr->data) + (darr->member_size * darr->used), ptr,
          size * darr->member_size);
   darr->used += size;
 }
@@ -131,6 +134,9 @@ void darr_mem_insert(darr_t *darr, void *ptr, size_t size, size_t where)
     darr->used = where + size;
   }
 
-  memcpy(darr->data + (darr->member_size * where), ptr,
+  // NOTE: We need this cast to move byte-by-byte.  Of course GNU C
+  // allows (void *) to have byte-like pointer arithemtic but we gotta
+  // be good.
+  memcpy(((int8_t *)darr->data) + (darr->member_size * where), ptr,
          size * darr->member_size);
 }

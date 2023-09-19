@@ -38,8 +38,7 @@ size_t buffer_space_left(buffer_t);
 #define DARR_INITAL_SIZE  64
 typedef struct
 {
-  // This is purely so pointer arithmetic is always in "bytes"
-  int8_t *data;
+  void *data;
   size_t member_size, used, available;
 } darr_t;
 
