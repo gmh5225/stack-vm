@@ -53,7 +53,7 @@ perr_t parse_line(buffer_t *buf, op_t *op)
     op->opcode = OP_NONE;
     goto NO_OPERAND;
   }
-  if (memcmp(buf->data + buf->cur, "halt", 4) == 0)
+  else if (memcmp(buf->data + buf->cur, "halt", 4) == 0)
   {
     buf->cur += end_of_operator;
     op->opcode = OP_HALT;
