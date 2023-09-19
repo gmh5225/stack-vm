@@ -96,6 +96,103 @@ bool test_perr_generate(void)
   return test_perr_cstr && test_perr_cursor && test_perr_filename;
 }
 
+bool test_parse_i64(void)
+{
+  // Parsing empty buffers
+  buffer_t buf = {0};
+  i64 ret      = 0;
+  perr_t err   = parse_i64(&buf, &ret);
+  ASSERT(test_empty_buffer, err == PERR_EOF);
+  // Parsing positive integers
+  const char *test_positive_inputs[] = {
+      "1", "10", "1000", "4294967296", "3141", "4611686018427387904"};
+  const i64 expected_positive_outputs[] = {
+      1, 10, 1000, 4294967296, 3141, 4611686018427387904};
+
+  bool test_positive_correct = true, test_positive_no_error = true;
+  LOG_TEST_START(test_positive_correct);
+  LOG_TEST_START(test_positive_no_error);
+
+  for (size_t i = 0; i < ARR_SIZE(test_positive_inputs); ++i)
+  {
+    const char *test = test_positive_inputs[i];
+    buf              = buffer_read_cstr("*test-parse-i64*", test, strlen(test));
+    err              = parse_i64(&buf, &ret);
+    const i64 expected = expected_positive_outputs[i];
+
+    LOG_TEST_INFO(test_ith_positive_, "Expected=%lu\n", expected);
+
+    ASSERT(test_ith_positive_correct, ret == expected);
+    test_positive_correct = test_positive_correct && test_ith_positive_correct;
+    ASSERT(test_ith_positive_no_error, err == PERR_OK);
+    test_positive_no_error =
+        test_positive_no_error && test_ith_positive_no_error;
+
+    free(buf.data);
+  }
+
+  LOG_TEST_STATUS(test_positive_correct, reduce(test_ith_positive_correct, &));
+  LOG_TEST_STATUS(test_positive_no_error,
+                  reduce(test_ith_positive_no_error, &));
+
+  // Parsing negative integers
+  const char *test_negative_inputs[] = {
+      "-1", "-10", "-1000", "-4294967296", "-3141", "-4611686018427387904"};
+  const i64 expected_negative_outputs[] = {
+      -1, -10, -1000, -4294967296, -3141, -4611686018427387904};
+
+  bool test_negative_correct = true, test_negative_no_error = true;
+  LOG_TEST_START(test_negative_correct);
+  LOG_TEST_START(test_negative_no_error);
+
+  for (size_t i = 0; i < ARR_SIZE(test_negative_inputs); ++i)
+  {
+    const char *test = test_negative_inputs[i];
+    buf              = buffer_read_cstr("*test-parse-i64*", test, strlen(test));
+    err              = parse_i64(&buf, &ret);
+    const i64 expected = expected_negative_outputs[i];
+
+    LOG_TEST_INFO(test_ith_negative_, "Expected=%ld\n", expected);
+
+    ASSERT(test_ith_negative_correct, ret == expected);
+    test_negative_correct = test_negative_correct && test_ith_negative_correct;
+    ASSERT(test_ith_negative_no_error, err == PERR_OK);
+    test_negative_no_error =
+        test_negative_no_error && test_ith_negative_no_error;
+
+    free(buf.data);
+  }
+
+  LOG_TEST_STATUS(test_negative_correct, reduce(test_ith_negative_correct, &));
+  LOG_TEST_STATUS(test_negative_no_error,
+                  reduce(test_ith_negative_no_error, &));
+
+  // Parsing bad integers (should cause errors)
+  const char *test_bad_inputs[] = {"This is certainly not an integer",
+                                   "Why are you looking for an integer?",
+                                   "<<<3"};
+
+  bool test_bad_got_error = true;
+  LOG_TEST_START(test_bad_got_error);
+
+  for (size_t i = 0; i < ARR_SIZE(test_bad_inputs); ++i)
+  {
+    const char *test = test_bad_inputs[i];
+    buf              = buffer_read_cstr("*test-parse-i64*", test, strlen(test));
+    err              = parse_i64(&buf, &ret);
+
+    ASSERT(test_ith_bad_got_error, err == PERR_EXPECTED_OPERAND);
+    test_bad_got_error = test_bad_got_error && test_ith_bad_got_error;
+
+    free(buf.data);
+  }
+
+  LOG_TEST_STATUS(test_bad_got_error, reduce(test_ith_bad_got_error, &));
+
+  return test_empty_buffer && test_positive_correct && test_positive_no_error &&
+         test_negative_correct && test_negative_no_error && test_bad_got_error;
+}
+
 bool test_parse_line(void)
 {
   // Test if each opcode can be parsed

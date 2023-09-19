@@ -33,7 +33,7 @@ perr_t parse_i64(buffer_t *buf, i64 *ret)
   char *operand        = buf->data + buf->cur;
   size_t end_of_number = get_size_i64(operand, buf->available - buf->cur);
   if (end_of_number != 0)
-    *ret = atoi(operand);
+    *ret = atoll(operand);
   else
     err = PERR_EXPECTED_OPERAND; // catch all
   buf->cur += end_of_number;
