@@ -157,7 +157,117 @@ bool test_parse_line(void)
   LOG_TEST_STATUS(test_parsed_operand, reduce(test_ith_parsed_operand, &));
   LOG_TEST_STATUS(test_parsed_perr, reduce(test_ith_parsed_perr, &));
 
-  return test_parsed_completely && test_parsed_operator && test_parsed_operand;
+  // Test if weird whitespace is fine
+  const char *test_whitespace_inputs[]     = {"push 1", "push       20",
+                                              "   push 5", "   push     20"};
+  const op_t expected_whitespace_outputs[] = {
+      OP_CREATE_PUSH(1), OP_CREATE_PUSH(20), OP_CREATE_PUSH(5),
+      OP_CREATE_PUSH(20)};
+
+  assert(ARR_SIZE(test_whitespace_inputs) ==
+             ARR_SIZE(expected_whitespace_outputs) &&
+         "whitespace_tests is outdated");
+
+  bool test_whitespace_parsed_completely = true,
+       test_whitespace_parsed_operator   = true,
+       test_whitespace_parsed_operand    = true,
+       test_whitespace_parsed_perr       = true;
+
+  for (size_t i = 0; i < ARR_SIZE(test_whitespace_inputs); ++i)
+  {
+    const char *test_data = test_whitespace_inputs[i];
+    buffer_t push_buffer =
+        buffer_read_cstr("*test-parse-line*", test_data, strlen(test_data));
+    op_t ret                = {0};
+    perr_t perr             = parse_line(&push_buffer, &ret);
+    const op_t expected_out = expected_whitespace_outputs[i];
+
+    printf("\t");
+    // Check that buffer is pushed to the end (completely parsed buffer)
+    ASSERT(test_ith_whitespace_parsed_completely, buffer_at_end(push_buffer));
+    test_parsed_completely =
+        test_parsed_completely && test_ith_whitespace_parsed_completely;
+
+    printf("\t");
+    // Check that operator is correct
+    ASSERT(test_ith_whitespace_parsed_operator,
+           ret.opcode == expected_out.opcode);
+    test_parsed_operator =
+        test_parsed_operator && test_ith_whitespace_parsed_operator;
+
+    printf("\t");
+    // Check that operand is correct
+    ASSERT(test_ith_whitespace_parsed_operand,
+           ret.operand == expected_out.operand);
+    test_parsed_operand =
+        test_parsed_operand && test_ith_whitespace_parsed_operand;
+
+    printf("\t");
+    // Check that perr = PERR_OK
+    ASSERT(test_ith_whitespace_parsed_perr, perr == PERR_OK);
+    test_whitespace_parsed_perr =
+        test_whitespace_parsed_perr && test_ith_whitespace_parsed_perr;
+
+    free(push_buffer.data);
+  }
+
+  LOG_TEST_STATUS(test_whitespace_parsed_completely,
+                  reduce(test_ith_whitespace_parsed_completely, &));
+  LOG_TEST_STATUS(test_whitespace_parsed_operator,
+                  reduce(test_ith_whitespace_parsed_operator, &));
+  LOG_TEST_STATUS(test_whitespace_parsed_operand,
+                  reduce(test_ith_whitespace_parsed_operand, &));
+  LOG_TEST_STATUS(test_whitespace_parsed_perr,
+                  reduce(test_ith_whitespace_parsed_perr, &));
+
+  // Finally, test if I can parse line by line
+  const char test_line_by_line_input[]      = "push 10\n"
+                                              "push 20\n"
+                                              "dup 10\n";
+  const op_t expected_line_by_line_output[] = {
+      OP_CREATE_PUSH(10), OP_CREATE_PUSH(20), OP_CREATE_DUP(10)};
+
+  buffer_t buf = buffer_read_cstr("*test-perr*", test_line_by_line_input,
+                                  strlen(test_line_by_line_input));
+
+  bool test_line_by_line_operator = true, test_line_by_line_operand = true,
+       test_line_by_line_perr = true;
+
+  for (size_t i = 0; !buffer_at_end(buf); ++i)
+  {
+    op_t ret          = {0};
+    perr_t perr       = parse_line(&buf, &ret);
+    op_t expected_out = expected_line_by_line_output[i];
+
+    printf("\t");
+    // Check that operator is correct
+    ASSERT(test_ith_line_by_line_operator, ret.opcode == expected_out.opcode);
+    test_line_by_line_operator =
+        test_line_by_line_operator && test_ith_line_by_line_operator;
+
+    printf("\t");
+    // Check that operand is correct
+    ASSERT(test_ith_line_by_line_operand, ret.operand == expected_out.operand);
+    test_line_by_line_operand =
+        test_line_by_line_operand && test_ith_line_by_line_operand;
+
+    printf("\t");
+    // Check that perr = PERR_OK
+    ASSERT(test_ith_line_by_line_perr, perr == PERR_OK);
+    test_line_by_line_perr =
+        test_line_by_line_perr && test_ith_line_by_line_perr;
+
+    buffer_seek_nextline(&buf);
+  }
+
+  free(buf.data);
+
+  return test_parsed_completely && test_parsed_operator &&
+         test_parsed_operand && test_parsed_perr &&
+         test_whitespace_parsed_completely && test_whitespace_parsed_operator &&
+         test_whitespace_parsed_operand && test_whitespace_parsed_perr &&
+         test_line_by_line_operator && test_line_by_line_operand &&
+         test_line_by_line_perr;
 }
 
 bool test_parse_buffer(void);
