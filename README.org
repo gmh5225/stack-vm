@@ -47,3 +47,21 @@ VERBOSE_LOGS N~ and set it to 1 to produce more verbose logs.
 [[file:src/vm.c::void vm_write_program(vm_t *vm, FILE *fp)]]
 
 We need something a bit more robust
+** TODO [0%] Write tests for parser
+[[file:tests/test-parser.c]]
+*** TODO Complete test_parse_line
++ Test whitespace inclusion
+[[file:tests/test-parser.c::bool test_parse_line(void)]]
+*** TODO Test parse_i64
+[[file:src/parser.c::perr_t parse_i64(buffer_t *buf, i64 *ret)]]
+*** TODO Test parse_buffer
+[[file:src/parser.c::perr_t parse_buffer(buffer_t *buf, op_t **instructions,]]
+** TODO [0%] Write tests for virtual machine implementation
+In particular the assembler and interpreter routines.
+[[file:tests/test-vm.c]]
+*** TODO Test vm_print_all
+*** TODO Test vm_execute
+*** TODO Test vm_execute_all
+*** TODO Test vm_copy_program
+*** TODO Test vm_write_program
+*** TODO Test vm_read_program
