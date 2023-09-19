@@ -98,14 +98,13 @@ bool test_perr_generate(void)
 
 bool test_parse_line(void)
 {
-  // Tests of each available opcode
-  const char *op_tests[] = {"noop\n",    "halt\n",  "push 10\n",
-                            "plus\n",    "dup 1\n", "print\n",
-                            "label 1\n", "jmp 1\n", "jmp l1\n"};
+  // Test if each opcode can be parsed
+  const char *test_ops[] = {"noop",  "halt",    "push 1", "plus",  "dup 1",
+                            "print", "label 1", "jmp 1",  "jmp l1"};
 
   const op_t expected_ops[] = {{0},
                                OP_CREATE_HALT,
-                               OP_CREATE_PUSH(10),
+                               OP_CREATE_PUSH(1),
                                OP_CREATE_PLUS,
                                OP_CREATE_DUP(1),
                                OP_CREATE_PRINT,
@@ -113,19 +112,19 @@ bool test_parse_line(void)
                                OP_CREATE_JMP_REL(1),
                                OP_CREATE_JMP_LBL(1)};
 
-  assert(ARR_SIZE(op_tests) == NUMBER_OF_OPERATORS &&
-         ARR_SIZE(op_tests) == ARR_SIZE(expected_ops) &&
+  assert(ARR_SIZE(test_ops) == NUMBER_OF_OPERATORS &&
+         ARR_SIZE(test_ops) == ARR_SIZE(expected_ops) &&
          "opcode_tests is outdated");
 
   bool test_parsed_completely = true, test_parsed_operator = true,
-       test_parsed_operand = true;
-  for (size_t i = 0; i < ARR_SIZE(op_tests); ++i)
+       test_parsed_operand = true, test_parsed_perr = true;
+  for (size_t i = 0; i < ARR_SIZE(test_ops); ++i)
   {
-    const char *test_data = op_tests[i];
+    const char *test_data = test_ops[i];
     buffer_t push_buffer =
         buffer_read_cstr("*test-parse-line*", test_data, strlen(test_data));
-    op_t ret = {0};
-    parse_line(&push_buffer, &ret);
+    op_t ret                = {0};
+    perr_t perr             = parse_line(&push_buffer, &ret);
     const op_t expected_out = expected_ops[i];
 
     printf("\t");
@@ -144,6 +143,11 @@ bool test_parse_line(void)
     ASSERT(test_ith_parsed_operand, ret.operand == expected_out.operand);
     test_parsed_operand = test_parsed_operand && test_ith_parsed_operand;
 
+    printf("\t");
+    // Check that perr = PERR_OK
+    ASSERT(test_ith_parsed_perr, perr == PERR_OK);
+    test_parsed_perr = test_parsed_perr && test_ith_parsed_perr;
+
     free(push_buffer.data);
   }
 
@@ -151,6 +155,7 @@ bool test_parse_line(void)
                   reduce(test_ith_parsed_completely, &));
   LOG_TEST_STATUS(test_parsed_operator, reduce(test_ith_parsed_operator, &));
   LOG_TEST_STATUS(test_parsed_operand, reduce(test_ith_parsed_operand, &));
+  LOG_TEST_STATUS(test_parsed_perr, reduce(test_ith_parsed_perr, &));
 
   return test_parsed_completely && test_parsed_operator && test_parsed_operand;
 }
