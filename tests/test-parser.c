@@ -285,12 +285,105 @@ bool test_parse_line(void)
   LOG_TEST_STATUS(test_line_by_line_perr,
                   reduce(test_ith_line_by_line_perr, &));
 
+  // Now test for error states
+
+  // No operand
+  const char *test_perr_no_operand_inputs[] = {"push", "dup", "label", "jmp"};
+
+  bool test_perr_no_operand = true;
+  LOG_TEST_START(test_perr_no_operand);
+  for (size_t i = 0; i < ARR_SIZE(test_perr_no_operand_inputs); ++i)
+  {
+    buffer_t buffer =
+        buffer_read_cstr("*test-parse-line*", test_perr_no_operand_inputs[i],
+                         strlen(test_perr_no_operand_inputs[i]));
+
+    op_t op  = {0};
+    perr_t p = parse_line(&buffer, &op);
+    printf("%s\n", perr_as_cstr(p));
+    printf("\t");
+    ASSERT(test_ith_perr_no_operand, p == PERR_EXPECTED_OPERAND);
+    test_perr_no_operand = test_perr_no_operand && test_ith_perr_no_operand;
+
+    free(buffer.data);
+  }
+  LOG_TEST_STATUS(test_perr_no_operand, reduce(test_ith_perr_no_operand, &));
+
+  // Unexpected operand
+  const char *test_perr_unexpected_operand_inputs[] = {"halt 1", "plus 2",
+                                                       "print 3"};
+
+  bool test_perr_unexpected_operand = true;
+  LOG_TEST_START(test_perr_unexpected_operand);
+  for (size_t i = 0; i < ARR_SIZE(test_perr_unexpected_operand_inputs); ++i)
+  {
+    buffer_t buffer = buffer_read_cstr(
+        "*test-parse-line*", test_perr_unexpected_operand_inputs[i],
+        strlen(test_perr_unexpected_operand_inputs[i]));
+
+    op_t op  = {0};
+    perr_t p = parse_line(&buffer, &op);
+
+    printf("\t");
+    ASSERT(test_ith_perr_unexpected_operand, p == PERR_UNEXPECTED_OPERAND);
+    test_perr_unexpected_operand =
+        test_perr_unexpected_operand && test_ith_perr_unexpected_operand;
+
+    free(buffer.data);
+  }
+  LOG_TEST_STATUS(test_perr_unexpected_operand,
+                  reduce(test_ith_perr_unexpected_operand, &));
+
+  // Not an operator
+  const char *test_perr_not_an_operator_inputs[] = {
+      "this is certainly not an operator", "18238192", "8====D"};
+  bool test_perr_not_an_operator = true;
+  LOG_TEST_START(test_perr_not_an_operator);
+  for (size_t i = 0; i < ARR_SIZE(test_perr_not_an_operator_inputs); ++i)
+  {
+    buffer_t buffer = buffer_read_cstr(
+        "*test-parse-line*", test_perr_not_an_operator_inputs[i],
+        strlen(test_perr_not_an_operator_inputs[i]));
+
+    op_t op  = {0};
+    perr_t p = parse_line(&buffer, &op);
+
+    printf("\t");
+    ASSERT(test_ith_perr_not_an_operator, p == PERR_ILLEGAL_OPERATOR);
+    test_perr_not_an_operator =
+        test_perr_not_an_operator && test_ith_perr_not_an_operator;
+
+    free(buffer.data);
+  }
+  LOG_TEST_STATUS(test_perr_not_an_operator,
+                  reduce(test_ith_perr_not_an_operator, &));
+
+  // End of file
+  // Simple case
+  buffer   = (buffer_t){0};
+  op_t op  = {0};
+  perr_t p = parse_line(&buffer, &op);
+  ASSERT(test_perr_simple_eof, p == PERR_EOF);
+
+  size_t data_size = 256;
+  char *data       = generate_random_data(data_size);
+  buffer           = buffer_read_cstr("*test-parse-line*", data, data_size);
+  free(data);
+
+  buffer.cur = buffer.available;
+  p          = parse_line(&buffer, &op);
+  ASSERT(test_perr_complex_eof, p == PERR_EOF);
+
+  free(buffer.data);
+
   return test_parsed_completely && test_parsed_operator &&
          test_parsed_operand && test_parsed_perr &&
          test_whitespace_parsed_completely && test_whitespace_parsed_operator &&
          test_whitespace_parsed_operand && test_whitespace_parsed_perr &&
          test_line_by_line_operator && test_line_by_line_operand &&
-         test_line_by_line_perr;
+         test_line_by_line_perr && test_perr_no_operand &&
+         test_perr_unexpected_operand && test_perr_not_an_operator &&
+         test_perr_simple_eof && test_perr_complex_eof;
 }
 
 bool test_parse_buffer(void);
