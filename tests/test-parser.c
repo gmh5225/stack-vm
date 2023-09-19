@@ -17,11 +17,8 @@ bool test_perr_generate(void)
   size_t data_size = 256;
   char *data       = generate_random_text(data_size, data_size / 4);
 
-  buffer_t buf  = {0};
-  buf.name      = "*test-perr*";
-  buf.cur       = 0;
-  buf.available = data_size;
-  buf.data      = data;
+  buffer_t buf = buffer_read_cstr("*test-perr*", data, data_size);
+  free(data);
 
   // This is to make sure we get an error if tests become outdated
   static_assert(NUMBER_OF_PERRORS == 5, "test_perr_generate: Outdated!");
@@ -95,7 +92,7 @@ bool test_perr_generate(void)
                  strlen(expected_output_test_filename)) == 0);
   free(output);
 
-  free(data);
+  free(buf.data);
 
   return test_perr_cstr && test_perr_cursor && test_perr_filename;
 }
