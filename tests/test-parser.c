@@ -21,14 +21,13 @@ bool test_perr_generate(void)
   free(data);
 
   // This is to make sure we get an error if tests become outdated
-  static_assert(NUMBER_OF_PERRORS == 6, "test_perr_generate: Outdated!");
+  static_assert(NUMBER_OF_PERRORS == 5, "test_perr_generate: Outdated!");
 
   // Current schema is something like "<name>:<pos> <err-cstr>" so
   // let's test that with some expected outputs.
   const char *expected_outputs_test_perr_cstr[] = {
       "*test-perr*:0: PERR_OK",
       "*test-perr*:0: PERR_EXPECTED_OPERAND",
-      "*test-perr*:0: PERR_UNEXPECTED_OPERATOR",
       "*test-perr*:0: PERR_UNEXPECTED_OPERAND",
       "*test-perr*:0: PERR_ILLEGAL_OPERATOR",
       "*test-perr*:0: PERR_EOF",
@@ -84,8 +83,8 @@ bool test_perr_generate(void)
   buf.name = "Another name";
   buf.cur  = 128;
   const char expected_output_test_filename[] =
-      "Another name:128: PERR_UNEXPECTED_OPERATOR";
-  perr_t perr  = PERR_UNEXPECTED_OPERATOR;
+      "Another name:128: PERR_ILLEGAL_OPERATOR";
+  perr_t perr  = PERR_ILLEGAL_OPERATOR;
   char *output = perr_generate(perr, &buf);
   ASSERT(test_perr_filename,
          memcmp(expected_output_test_filename, output,

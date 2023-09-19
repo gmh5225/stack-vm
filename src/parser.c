@@ -156,8 +156,6 @@ const char *perr_as_cstr(perr_t err)
     return "PERR_OK";
   case PERR_EXPECTED_OPERAND:
     return "PERR_EXPECTED_OPERAND";
-  case PERR_UNEXPECTED_OPERATOR:
-    return "PERR_UNEXPECTED_OPERATOR";
   case PERR_UNEXPECTED_OPERAND:
     return "PERR_UNEXPECTED_OPERAND";
   case PERR_ILLEGAL_OPERATOR:
