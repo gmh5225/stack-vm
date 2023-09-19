@@ -41,8 +41,7 @@ bool test_perr_generate(void)
     char *output         = perr_generate(perr, &buf);
     const char *expected = expected_outputs_test_perr_cstr[i];
     printf("\t");
-    ASSERT(test_ith_perr_cstr,
-           strncmp(expected, output, strlen(expected)) == 0);
+    ASSERT(test_ith_perr_cstr, memcmp(expected, output, strlen(expected)) == 0);
     free(output);
     test_perr_cstr = test_perr_cstr && test_ith_perr_cstr;
   }
@@ -74,7 +73,7 @@ bool test_perr_generate(void)
     const char *expected = expected_outputs_test_perr_cursor[i];
     printf("\t");
     ASSERT(test_ith_perr_cursor,
-           strncmp(expected, output, strlen(expected)) == 0);
+           memcmp(expected, output, strlen(expected)) == 0);
     free(output);
     test_perr_cursor = test_perr_cursor && test_ith_perr_cursor;
   }
@@ -88,8 +87,8 @@ bool test_perr_generate(void)
   perr_t perr  = PERR_UNEXPECTED_OPERATOR;
   char *output = perr_generate(perr, &buf);
   ASSERT(test_perr_filename,
-         strncmp(expected_output_test_filename, output,
-                 strlen(expected_output_test_filename)) == 0);
+         memcmp(expected_output_test_filename, output,
+                strlen(expected_output_test_filename)) == 0);
   free(output);
 
   free(buf.data);

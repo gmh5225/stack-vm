@@ -71,7 +71,7 @@ bool test_lib_buffer_read_file_fixed(size_t text_size)
   printf("\t");
   ASSERT(test_1, buf.available == text_size);
   printf("\t");
-  ASSERT(test_2, strncmp(buf.data, text, text_size) == 0);
+  ASSERT(test_2, memcmp(buf.data, text, text_size) == 0);
   free(buf.data);
   free(text);
 
@@ -106,7 +106,7 @@ bool test_lib_buffer_read_cstr_fixed(size_t text_size)
   printf("\t");
   ASSERT(test_1, buf.available == text_size);
   printf("\t");
-  ASSERT(test_2, strncmp(buf.data, text, text_size) == 0);
+  ASSERT(test_2, memcmp(buf.data, text, text_size) == 0);
   free(buf.data);
   free(text);
 
@@ -187,21 +187,21 @@ bool test_lib_buffer_seek_next(void)
   ++buffer.cur;
   buffer_seek_next(&buffer);
   ASSERT(test_sample_first_word,
-         strncmp("Word1", buffer.data + buffer.cur, 5) == 0);
+         memcmp("Word1", buffer.data + buffer.cur, 5) == 0);
 
   buffer.cur += 5;
   buffer_seek_next(&buffer);
   ASSERT(test_sample_second_word,
-         strncmp("Word2", buffer.data + buffer.cur, 5) == 0);
+         memcmp("Word2", buffer.data + buffer.cur, 5) == 0);
 
   buffer.cur += 5;
   buffer_seek_next(&buffer);
   ASSERT(test_sample_third_word,
-         strncmp("Word3", buffer.data + buffer.cur, 5) == 0);
+         memcmp("Word3", buffer.data + buffer.cur, 5) == 0);
 
   buffer_seek_next(&buffer);
   ASSERT(test_sample_does_not_skip,
-         strncmp("Word3", buffer.data + buffer.cur, 5) == 0);
+         memcmp("Word3", buffer.data + buffer.cur, 5) == 0);
 
   free(buffer.data);
 
@@ -248,31 +248,31 @@ bool test_lib_buffer_seek_nextline(void)
 
   buffer_seek_nextline(&buffer);
   ASSERT(test_sample_first_sentence,
-         strncmp(buffer.data + buffer.cur, "I should stay here", 18) == 0);
+         memcmp(buffer.data + buffer.cur, "I should stay here", 18) == 0);
   buffer.cur += 18;
 
   buffer_seek_nextline(&buffer);
   ASSERT(test_sample_second_sentence,
-         strncmp(buffer.data + buffer.cur, "I should stop here", 18) == 0);
+         memcmp(buffer.data + buffer.cur, "I should stop here", 18) == 0);
   buffer.cur += 18;
 
   buffer_seek_nextline(&buffer);
   ASSERT(test_sample_third_sentence,
-         strncmp(buffer.data + buffer.cur, "Can I stop here?", 16) == 0);
+         memcmp(buffer.data + buffer.cur, "Can I stop here?", 16) == 0);
   buffer.cur += 16;
 
   buffer_seek_nextline(&buffer);
   ASSERT(test_sample_fourth_sentence,
-         strncmp(buffer.data + buffer.cur, "a", 1) == 0);
+         memcmp(buffer.data + buffer.cur, "a", 1) == 0);
   buffer.cur += 1;
 
   buffer_seek_nextline(&buffer);
   ASSERT(test_sample_fifth_sentence,
-         strncmp(buffer.data + buffer.cur, "stop here", 9) == 0);
+         memcmp(buffer.data + buffer.cur, "stop here", 9) == 0);
 
   buffer_seek_next(&buffer);
   ASSERT(test_sample_does_not_skip,
-         strncmp(buffer.data + buffer.cur, "stop here", 9) == 0);
+         memcmp(buffer.data + buffer.cur, "stop here", 9) == 0);
 
   free(buffer.data);
 
@@ -450,7 +450,7 @@ bool test_lib_darr_mem_append(void)
     size_t size_of_chunk = sizes[i];
     printf("\t");
     ASSERT(test_chunks_ith_chunk_is_appended,
-           strncmp(((char *)darr.data) + acc, chunk, size_of_chunk) == 0);
+           memcmp(darr.data + acc, chunk, size_of_chunk) == 0);
     test_chunks_appended =
         test_chunks_appended && test_chunks_ith_chunk_is_appended;
     acc += size_of_chunk;
@@ -475,7 +475,7 @@ bool test_lib_darr_mem_append(void)
 
   ASSERT(test_word_by_word_correct_size, darr.used == 19);
   ASSERT(test_word_by_word_correct_string,
-         strncmp(darr.data, "This is a sentence!", 19) == 0);
+         memcmp(darr.data, "This is a sentence!", 19) == 0);
 
   darr_free(&darr);
 
@@ -516,8 +516,8 @@ bool test_lib_darr_mem_insert(void)
   // Test for no allocation
   ASSERT(test_middle_insert_does_not_allocate, darr.used == data_size);
   // Check that state has been changed
-  ASSERT(test_middle_insert_works, strncmp(((char *)darr.data) + data_size / 2,
-                                           sentence, ARR_SIZE(sentence)) == 0);
+  ASSERT(test_middle_insert_works,
+         memcmp(darr.data + data_size / 2, sentence, ARR_SIZE(sentence)) == 0);
 
   // Inserting another random data buffer of the same size but half
   // way must force allocation
@@ -529,7 +529,7 @@ bool test_lib_darr_mem_insert(void)
   ASSERT(test_large_mid_insert_reallocates_correctly,
          darr.used == (data_size + data_size / 2));
   ASSERT(test_large_mid_insert_works,
-         strncmp(((char *)darr.data) + data_size / 2, data, data_size) == 0);
+         memcmp(darr.data + data_size / 2, data, data_size) == 0);
   free(data);
 
   darr_free(&darr);
@@ -556,7 +556,7 @@ bool test_lib_DARR_APP(void)
     DARR_APP(&darr, char, sentence[i]);
   ASSERT(test_sentence_uses_right_space, darr.used == ARR_SIZE(sentence));
   ASSERT(test_sentence_works,
-         strncmp(((char *)darr.data), sentence, ARR_SIZE(sentence)) == 0);
+         memcmp(darr.data, sentence, ARR_SIZE(sentence)) == 0);
   // Testing if amortized constant big O space is true (by allocating
   // more space than necessary)
   ASSERT(test_sentence_allocated_space,
@@ -572,8 +572,7 @@ bool test_lib_DARR_APP(void)
     DARR_APP(&darr, char, data[i]);
 
   ASSERT(test_rand_data_uses_right_space, darr.used == data_size);
-  ASSERT(test_rand_data_works,
-         strncmp(((char *)darr.data), data, data_size) == 0);
+  ASSERT(test_rand_data_works, memcmp(darr.data, data, data_size) == 0);
   // Testing if amortized constant big O space is true (by allocating
   // more space than necessary)
   ASSERT(test_rand_data_allocated_space,

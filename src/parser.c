@@ -46,13 +46,13 @@ perr_t parse_line(buffer_t *buf, op_t *op)
 
   // Find the end of operator
   size_t end_of_operator = strcspn(buf->data + buf->cur, " \n");
-  if (strncmp(buf->data + buf->cur, "halt", 4) == 0)
+  if (memcmp(buf->data + buf->cur, "halt", 4) == 0)
   {
     buf->cur += end_of_operator;
     op->opcode = OP_HALT;
     goto NO_OPERAND;
   }
-  else if (strncmp(buf->data + buf->cur, "push", 4) == 0)
+  else if (memcmp(buf->data + buf->cur, "push", 4) == 0)
   {
     // Seek the operand
     buf->cur += end_of_operator;
@@ -60,26 +60,26 @@ perr_t parse_line(buffer_t *buf, op_t *op)
     op->opcode = OP_PUSH;
     return parse_i64(buf, &op->operand);
   }
-  else if (strncmp(buf->data + buf->cur, "plus", 4) == 0)
+  else if (memcmp(buf->data + buf->cur, "plus", 4) == 0)
   {
     buf->cur += end_of_operator;
     op->opcode = OP_PLUS;
     goto NO_OPERAND;
   }
-  else if (strncmp(buf->data + buf->cur, "dup", 3) == 0)
+  else if (memcmp(buf->data + buf->cur, "dup", 3) == 0)
   {
     buf->cur += end_of_operator;
     buffer_seek_next(buf);
     op->opcode = OP_DUP;
     return parse_i64(buf, &op->operand);
   }
-  else if (strncmp(buf->data + buf->cur, "print", 5) == 0)
+  else if (memcmp(buf->data + buf->cur, "print", 5) == 0)
   {
     buf->cur += end_of_operator;
     op->opcode = OP_PRINT;
     goto NO_OPERAND;
   }
-  else if (strncmp(buf->data + buf->cur, "label", 5) == 0)
+  else if (memcmp(buf->data + buf->cur, "label", 5) == 0)
   {
     // No name strings for labels, just unsigned integers
     buf->cur += end_of_operator;
@@ -87,7 +87,7 @@ perr_t parse_line(buffer_t *buf, op_t *op)
     op->opcode = OP_LABEL;
     return parse_i64(buf, &op->operand);
   }
-  else if (strncmp(buf->data + buf->cur, "jmp", 3) == 0)
+  else if (memcmp(buf->data + buf->cur, "jmp", 3) == 0)
   {
     buf->cur += end_of_operator;
     buffer_seek_next(buf);
