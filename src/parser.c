@@ -109,7 +109,7 @@ perr_t parse_line(buffer_t *buf, op_t *op)
       op->opcode = OP_JUMP_REL;
     return parse_i64(buf, &op->operand);
   }
-  return PERR_UNEXPECTED_OPERATOR;
+  return PERR_ILLEGAL_OPERATOR;
 NO_OPERAND:
   buffer_seek_next(buf);
   if (buffer_at_end(*buf) == BUFFER_OK && buf->data[buf->cur] != '\n')
@@ -154,14 +154,16 @@ const char *perr_as_cstr(perr_t err)
   {
   case PERR_OK:
     return "PERR_OK";
+  case PERR_EXPECTED_OPERAND:
+    return "PERR_EXPECTED_OPERAND";
   case PERR_UNEXPECTED_OPERATOR:
     return "PERR_UNEXPECTED_OPERATOR";
   case PERR_UNEXPECTED_OPERAND:
     return "PERR_UNEXPECTED_OPERAND";
+  case PERR_ILLEGAL_OPERATOR:
+    return "PERR_ILLEGAL_OPERATOR";
   case PERR_EOF:
     return "PERR_EOF";
-  case PERR_EXPECTED_OPERAND:
-    return "PERR_EXPECTED_OPERAND";
   case NUMBER_OF_PERRORS:
     // This really shouldn't happen
   default:
