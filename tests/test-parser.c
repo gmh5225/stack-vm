@@ -129,7 +129,7 @@ bool test_parse_line(void)
 
     printf("\t");
     // Check that buffer is pushed to the end (completely parsed buffer)
-    ASSERT(test_ith_parsed_completely, buffer_at_end(push_buffer));
+    ASSERT(test_ith_parsed_completely, buffer_at_end(push_buffer) != BUFFER_OK);
     test_parsed_completely =
         test_parsed_completely && test_ith_parsed_completely;
 
@@ -184,7 +184,8 @@ bool test_parse_line(void)
 
     printf("\t");
     // Check that buffer is pushed to the end (completely parsed buffer)
-    ASSERT(test_ith_whitespace_parsed_completely, buffer_at_end(push_buffer));
+    ASSERT(test_ith_whitespace_parsed_completely,
+           buffer_at_end(push_buffer) != BUFFER_OK);
     test_parsed_completely =
         test_parsed_completely && test_ith_whitespace_parsed_completely;
 
@@ -227,16 +228,16 @@ bool test_parse_line(void)
   const op_t expected_line_by_line_output[] = {
       OP_CREATE_PUSH(10), OP_CREATE_PUSH(20), OP_CREATE_DUP(10)};
 
-  buffer_t buf = buffer_read_cstr("*test-perr*", test_line_by_line_input,
-                                  strlen(test_line_by_line_input));
+  buffer_t buffer = buffer_read_cstr("*test-perr*", test_line_by_line_input,
+                                     strlen(test_line_by_line_input));
 
   bool test_line_by_line_operator = true, test_line_by_line_operand = true,
        test_line_by_line_perr = true;
 
-  for (size_t i = 0; !buffer_at_end(buf); ++i)
+  for (size_t i = 0; buffer_at_end(buffer) == BUFFER_OK; ++i)
   {
     op_t ret          = {0};
-    perr_t perr       = parse_line(&buf, &ret);
+    perr_t perr       = parse_line(&buffer, &ret);
     op_t expected_out = expected_line_by_line_output[i];
 
     printf("\t");
@@ -257,10 +258,10 @@ bool test_parse_line(void)
     test_line_by_line_perr =
         test_line_by_line_perr && test_ith_line_by_line_perr;
 
-    buffer_seek_nextline(&buf);
+    buffer_seek_nextline(&buffer);
   }
 
-  free(buf.data);
+  free(buffer.data);
 
   return test_parsed_completely && test_parsed_operator &&
          test_parsed_operand && test_parsed_perr &&

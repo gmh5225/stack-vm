@@ -168,7 +168,12 @@ bool test_lib_buffer_seek_next(void)
   // Check behaviour when we're at the end
   buffer.cur = buffer.available;
   buffer_seek_next(&buffer);
-  ASSERT(test_eof_behaviour, buffer_at_end(buffer));
+  ASSERT(test_at_end_behaviour, buffer_at_end(buffer) == BUFFER_AT_END);
+
+  // Check behaviour when we're past the end
+  buffer.cur = buffer.available + 1;
+  buffer_seek_next(&buffer);
+  ASSERT(test_past_end_behaviour, buffer_at_end(buffer) == BUFFER_PAST_END);
 
   // Reset
   free(buffer.data);
@@ -205,7 +210,8 @@ bool test_lib_buffer_seek_next(void)
 
   free(buffer.data);
 
-  return test_not_at_blank && test_eof_behaviour && test_sample_char &&
+  return test_not_at_blank && test_at_end_behaviour &&
+         test_past_end_behaviour && test_sample_char &&
          test_sample_first_word && test_sample_second_word &&
          test_sample_third_word && test_sample_does_not_skip;
 }
@@ -225,7 +231,12 @@ bool test_lib_buffer_seek_nextline(void)
   // Check behaviour when we're at the end
   buffer.cur = buffer.available;
   buffer_seek_nextline(&buffer);
-  ASSERT(test_eof_behaviour, buffer_at_end(buffer));
+  ASSERT(test_at_end_behaviour, buffer_at_end(buffer) == BUFFER_AT_END);
+
+  // Check behaviour when we're past the end
+  buffer.cur = buffer.available + 1;
+  buffer_seek_nextline(&buffer);
+  ASSERT(test_past_end_behaviour, buffer_at_end(buffer) == BUFFER_PAST_END);
 
   // Reset
   free(buffer.data);
@@ -277,35 +288,37 @@ bool test_lib_buffer_seek_nextline(void)
 
   free(buffer.data);
 
-  return test_not_at_blank && test_eof_behaviour &&
-         test_sample_first_sentence && test_sample_second_sentence &&
-         test_sample_third_sentence && test_sample_fourth_sentence &&
-         test_sample_fifth_sentence && test_sample_does_not_skip;
+  return test_not_at_blank && test_at_end_behaviour &&
+         test_past_end_behaviour && test_sample_first_sentence &&
+         test_sample_second_sentence && test_sample_third_sentence &&
+         test_sample_fourth_sentence && test_sample_fifth_sentence &&
+         test_sample_does_not_skip;
 }
 
 bool test_lib_buffer_at_end(void)
 {
   // Empty context => empty
   buffer_t buf = {0};
-  ASSERT(test_very_easy, buffer_at_end(buf));
+  ASSERT(test_very_easy, buffer_at_end(buf) != BUFFER_OK);
 
-  // Read a large text, go right to the end and check when going to
-  // the penultimate, ultimate and past the end
+  // Read a large text, go right to the end and check when ok, going to
+  // the end and past it
   size_t text_size = 256;
   char *text       = generate_random_data(text_size);
   buf              = buffer_read_cstr("*test-cstr*", text, text_size);
   free(text);
 
+  buf.cur = buf.available - 1;
+  ASSERT(test_penultimate, buffer_at_end(buf) == BUFFER_OK);
+
   buf.cur = buf.available;
-  ASSERT(test_penultimate, buffer_at_end(buf));
-  buf.cur = buf.available;
-  ASSERT(test_ultimate, buffer_at_end(buf));
+  ASSERT(test_ultimate, buffer_at_end(buf) == BUFFER_AT_END);
 
   buf.cur = buf.available + 1;
-  ASSERT(test_kinda_past, buffer_at_end(buf));
+  ASSERT(test_kinda_past, buffer_at_end(buf) == BUFFER_PAST_END);
 
   buf.cur = buf.available + text_size;
-  ASSERT(test_way_past, buffer_at_end(buf));
+  ASSERT(test_way_past, buffer_at_end(buf) == BUFFER_PAST_END);
 
   free(buf.data);
 

@@ -27,7 +27,7 @@ size_t get_size_i64(char *str, size_t max_size)
 
 perr_t parse_i64(buffer_t *buf, i64 *ret)
 {
-  if (buffer_at_end(*buf))
+  if (buffer_at_end(*buf) == BUFFER_PAST_END)
     return PERR_EOF;
   perr_t err           = PERR_OK;
   char *operand        = buf->data + buf->cur;
@@ -100,7 +100,7 @@ perr_t parse_line(buffer_t *buf, op_t *op)
     buffer_seek_next(buf);
     // If number starts with "l" then label, otherwise assume it's a
     // relative jump
-    if (!buffer_at_end(*buf) && buf->data[buf->cur] == 'l')
+    if (buffer_at_end(*buf) == BUFFER_OK && buf->data[buf->cur] == 'l')
     {
       op->opcode = OP_JUMP_LABEL;
       ++buf->cur;
@@ -112,7 +112,7 @@ perr_t parse_line(buffer_t *buf, op_t *op)
   return PERR_UNEXPECTED_OPERATOR;
 NO_OPERAND:
   buffer_seek_next(buf);
-  if (!buffer_at_end(*buf) && buf->data[buf->cur] != '\n')
+  if (buffer_at_end(*buf) == BUFFER_OK && buf->data[buf->cur] != '\n')
     return PERR_UNEXPECTED_OPERAND;
   return PERR_OK;
 }
@@ -125,7 +125,7 @@ perr_t parse_buffer(buffer_t *buf, op_t **instructions,
   size_t parsed;
 
   buffer_seek_nextline(buf);
-  for (parsed = 0; !buffer_at_end(*buf); ++parsed)
+  for (parsed = 0; buffer_at_end(*buf) == BUFFER_OK; ++parsed)
   {
     op_t parsed = {0};
     perr_t perr = parse_line(buf, &parsed);
