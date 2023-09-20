@@ -6,6 +6,7 @@
 
 #include "./data.h"
 
+#include <assert.h>
 #include <string.h>
 
 data_t data_nil(void)
@@ -148,4 +149,40 @@ data_t data_read(data_type_t tag, byte *bytes)
     return data_double(d);
   }
   }
+  return data_nil();
+}
+
+static_assert(DATA_DOUBLE - DATA_INT == 2,
+              "data_numeric_cast: Doesn't cover all numeric types");
+
+data_t data_numeric_cast(data_t d, data_type_t t)
+{
+  if (d.type < DATA_INT || t < DATA_INT)
+    return data_nil();
+
+  if (t == DATA_INT)
+  {
+    if (d.type == DATA_INT || d.type == DATA_UINT)
+      return data_int(d.payload.as_int);
+    else
+      return data_int((i64)d.payload.as_double);
+  }
+  else if (t == DATA_UINT)
+  {
+    if (d.type == DATA_INT || d.type == DATA_UINT)
+      return data_uint(d.payload.as_uint);
+    else
+      return data_uint((u64)d.payload.as_double);
+  }
+  else if (t == DATA_DOUBLE)
+  {
+    if (d.type == DATA_INT)
+      return data_double((double)d.payload.as_int);
+    else if (d.type == DATA_UINT)
+      return data_double((double)d.payload.as_uint);
+    else
+      return d;
+  }
+
+  return data_nil();
 }

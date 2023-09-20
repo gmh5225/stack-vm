@@ -15,6 +15,8 @@ typedef struct
     DATA_INT,
     DATA_UINT,
     DATA_DOUBLE,
+
+    NUMBER_OF_DATATYPES
   } type;
 
   union
@@ -37,6 +39,8 @@ data_t data_uint(u64 u);
 data_t data_double(double d);
 
 void data_print(data_t);
+
+data_t data_numeric_cast(data_t, data_type_t);
 
 // Writes datum in bytes.  Assume bytes has enough space for datum.
 size_t data_write(data_t, byte *);
