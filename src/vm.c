@@ -89,7 +89,10 @@ err_t vm_execute(vm_t *vm)
     vm->iptr++;
     break;
   case OP_JUMP:
-    assert(false && "TODO: implement vm_execute(OP_JUMP)");
+    if (op.operand < 0 || ((u64)op.operand) > vm->size_program)
+      return ERR_ILLEGAL_JUMP;
+    vm->iptr = op.operand;
+    break;
   case NUMBER_OF_OPERATORS:
   default:
     return ERR_ILLEGAL_INSTRUCTION;
