@@ -54,6 +54,9 @@ size_t data_write(data_t datum, byte *bytes)
     case DATA_UINT:
     case DATA_DOUBLE:
       return 9;
+    case NUMBER_OF_DATATYPES:
+    default:
+      return 0;
     }
   }
   bytes[0] = datum.type;
@@ -80,8 +83,10 @@ size_t data_write(data_t datum, byte *bytes)
 #endif
     return 9;
     break;
+  case NUMBER_OF_DATATYPES:
+  default:
+    return 0;
   }
-  return 0;
 }
 
 void data_print(data_t d)
@@ -106,6 +111,9 @@ void data_print(data_t d)
   case DATA_DOUBLE:
     printf("%ff", d.payload.as_double);
     break;
+  case NUMBER_OF_DATATYPES:
+  default:
+    return;
   }
 }
 
@@ -148,8 +156,10 @@ data_t data_read(data_type_t tag, byte *bytes)
     memcpy(&d, &u, sizeof(d));
     return data_double(d);
   }
+  case NUMBER_OF_DATATYPES:
+  default:
+    return data_nil();
   }
-  return data_nil();
 }
 
 static_assert(DATA_DOUBLE - DATA_INT == 2,
