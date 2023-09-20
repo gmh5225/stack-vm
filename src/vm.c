@@ -6,6 +6,7 @@
 
 #include "./vm.h"
 
+#include <assert.h>
 #include <string.h>
 
 void vm_print_all(vm_t *vm, FILE *fp)
@@ -87,23 +88,8 @@ err_t vm_execute(vm_t *vm)
     printf("%" PRId64 "\n", vm->stack[vm->sptr - 1]);
     vm->iptr++;
     break;
-  case OP_LABEL:
-    if (op.operand > VM_LABEL_MAX)
-      return ERR_LABEL_OVERFLOW;
-    vm->labels[op.operand] = vm->iptr + 1;
-    vm->iptr++;
-    break;
-  case OP_JUMP_REL:
-    if (vm->iptr + op.operand > VM_PROGRAM_MAX ||
-        ((i64)vm->iptr) + op.operand < 0)
-      return ERR_ILLEGAL_JUMP;
-    vm->iptr += op.operand;
-    break;
-  case OP_JUMP_LABEL:
-    if (op.operand > VM_LABEL_MAX)
-      return ERR_LABEL_OVERFLOW;
-    vm->iptr = vm->labels[op.operand];
-    break;
+  case OP_JUMP:
+    assert(false && "TODO: implement vm_execute(OP_JUMP)");
   case NUMBER_OF_OPERATORS:
   default:
     return ERR_ILLEGAL_INSTRUCTION;

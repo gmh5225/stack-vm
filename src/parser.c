@@ -6,6 +6,7 @@
 
 #include "./parser.h"
 
+#include <assert.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
@@ -92,28 +93,14 @@ perr_t parse_line(buffer_t *buf, op_t *op)
   }
   else if (memcmp(buf->data + buf->cur, "label", 5) == 0)
   {
-    // No name strings for labels, just unsigned integers
-    buf->cur += end_of_operator;
-    buffer_seek_next(buf);
-    op->opcode = OP_LABEL;
-    return parse_i64(buf, &op->operand);
+    assert(false && "TODO: reimplement parse_line(label)");
   }
   else if (memcmp(buf->data + buf->cur, "jmp", 3) == 0)
   {
-    buf->cur += end_of_operator;
-    buffer_seek_next(buf);
-    // If number starts with "l" then label, otherwise assume it's a
-    // relative jump
-    if (buffer_at_end(*buf) == BUFFER_OK && buf->data[buf->cur] == 'l')
-    {
-      op->opcode = OP_JUMP_LABEL;
-      ++buf->cur;
-    }
-    else
-      op->opcode = OP_JUMP_REL;
-    return parse_i64(buf, &op->operand);
+    assert(false && "TODO: reimplement parse_line(jmp)");
   }
-  return PERR_ILLEGAL_OPERATOR;
+  else
+    return PERR_ILLEGAL_OPERATOR;
 NO_OPERAND:
   buffer_seek_next(buf);
   if (buffer_at_end(*buf) == BUFFER_OK && buf->data[buf->cur] != '\n')

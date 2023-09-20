@@ -28,14 +28,8 @@ void op_print(op_t op, FILE *fp)
   case OP_PRINT:
     fprintf(fp, "OP_PRINT");
     break;
-  case OP_JUMP_REL:
-    fprintf(fp, "OP_JUMP_REL(%" PRId64 ")", op.operand);
-    break;
-  case OP_JUMP_LABEL:
-    fprintf(fp, "OP_JUMP_LABEL(%" PRId64 ")", op.operand);
-    break;
-  case OP_LABEL:
-    fprintf(fp, "OP_LABEL(%" PRId64 ")", op.operand);
+  case OP_JUMP:
+    fprintf(fp, "OP_JUMP(%" PRId64 ")", op.operand);
     break;
   case NUMBER_OF_OPERATORS:
     fputs("", fp);

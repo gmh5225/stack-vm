@@ -11,9 +11,6 @@
 
 typedef struct
 {
-  word labels[VM_LABEL_MAX];
-  word lptr;
-
   op_t program[VM_PROGRAM_MAX];
   word iptr, size_program;
 
