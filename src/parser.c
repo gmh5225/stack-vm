@@ -119,7 +119,59 @@ perr_t parse_line(buffer_t *buf, pres_t *res)
   }
   else if (memcmp(buf->data + buf->cur, "jmp", 3) == 0)
   {
-    assert(false && "TODO: reimplement parse_line(jmp)");
+    // Jump must have an operand afterwards
+    buf->cur += end_of_operator;
+    buffer_seek_next(buf);
+    size_t operand_size = strcspn(buf->data + buf->cur, "\n\0");
+    if (operand_size == 0)
+      return PERR_EXPECTED_OPERAND;
+
+    // There are three types of jmp I want to support:
+    // Absolute jump (easiest)
+
+    // First an error check for "negative absolute addresses"
+    if (buffer_peek(*buf) == '-' && buffer_at_end(*buf) == BUFFER_OK &&
+        isdigit(buf->data[buf->cur + 1]))
+      return PERR_ILLEGAL_INST_ADDRESS;
+    if (isdigit(buffer_peek(*buf)))
+    {
+      res->type             = PRES_IMMEDIATE;
+      res->immediate.opcode = OP_JUMP;
+      perr_t err            = parse_i64(buf, &res->immediate.operand);
+      if (err != PERR_OK)
+        return err;
+      else
+        return PERR_OK;
+    }
+
+    // Relative jump (medium)
+    else if (buffer_peek(*buf) == '.')
+    {
+      // I need digits after this
+      if (buffer_at_end(*buf) != BUFFER_OK)
+        return PERR_EXPECTED_OPERAND;
+      ++buf->cur;
+      res->type = PRES_JUMP_RELATIVE;
+      return parse_i64(buf, &res->relative_jump_operand);
+    }
+
+    // Label jump (hard)
+    // First check if it is a valid label name
+    size_t label_size =
+        strspn(buf->data + buf->cur, PARSER_LABEL_ACCEPTED_CHARS);
+    if (label_size == 0)
+      return PERR_EXPECTED_OPERAND;
+    else if (label_size != operand_size)
+      return PERR_EXPECTED_LABEL;
+
+    res->type       = PRES_JUMP_LABEL;
+    res->label_name = calloc(label_size + 1, sizeof(*res->label_name));
+    memcpy(res->label_name, buf->data + buf->cur, label_size);
+    res->label_name[label_size] = '\0';
+
+    buf->cur += label_size;
+
+    return PERR_OK;
   }
   else
     return PERR_ILLEGAL_OPERATOR;
