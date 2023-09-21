@@ -25,6 +25,9 @@ typedef enum
 const char *perr_as_cstr(perr_t err);
 char *perr_generate(perr_t err, buffer_t *buf);
 
+#define PARSER_LABEL_ACCEPTED_CHARS \
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-"
+
 typedef struct
 {
   size_t buffer_cursor;

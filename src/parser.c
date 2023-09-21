@@ -101,7 +101,21 @@ perr_t parse_line(buffer_t *buf, pres_t *res)
   }
   else if (memcmp(buf->data + buf->cur, "label", 5) == 0)
   {
-    assert(false && "TODO: reimplement parse_line(label)");
+    buf->cur += end_of_operator;
+    buffer_seek_next(buf);
+    size_t label_size =
+        strspn(buf->data + buf->cur, PARSER_LABEL_ACCEPTED_CHARS);
+    if (label_size == 0)
+      return PERR_EXPECTED_LABEL;
+    res->type = PRES_LABEL;
+    // Parse label name
+    res->label_name = calloc(label_size + 1, sizeof(*res->label_name));
+    memcpy(res->label_name, buf->data + buf->cur, label_size);
+    res->label_name[label_size] = '\0';
+
+    buf->cur += label_size;
+
+    return PERR_OK;
   }
   else if (memcmp(buf->data + buf->cur, "jmp", 3) == 0)
   {
