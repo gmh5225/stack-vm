@@ -5,20 +5,21 @@
 
 #include <stdio.h>
 
+typedef enum OPCODE
+{
+  OP_NONE = 0,
+  OP_HALT,
+  OP_PUSH,
+  OP_PLUS,
+  OP_DUP,
+  OP_PRINT,
+  OP_JUMP,
+  NUMBER_OF_OPERATORS,
+} inst_t;
+
 typedef struct
 {
-  enum OPCODE
-  {
-    OP_NONE = 0,
-    OP_HALT,
-    OP_PUSH,
-    OP_PLUS,
-    OP_DUP,
-    OP_PRINT,
-    OP_JUMP,
-    NUMBER_OF_OPERATORS,
-  } opcode;
-
+  inst_t opcode;
   i64 operand;
 } op_t;
 

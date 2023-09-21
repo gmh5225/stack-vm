@@ -5,20 +5,21 @@
 
 #include "./lib.h"
 
+typedef enum DataType
+{
+  DATA_NIL = 0,
+  DATA_BOOLEAN,
+  DATA_CHARACTER,
+  DATA_INT,
+  DATA_UINT,
+  DATA_DOUBLE,
+
+  NUMBER_OF_DATATYPES
+} data_type_t;
+
 typedef struct
 {
-  enum DataType
-  {
-    DATA_NIL = 0,
-    DATA_BOOLEAN,
-    DATA_CHARACTER,
-    DATA_INT,
-    DATA_UINT,
-    DATA_DOUBLE,
-
-    NUMBER_OF_DATATYPES
-  } type;
-
+  data_type_t type;
   union
   {
     bool as_bool;
@@ -28,8 +29,6 @@ typedef struct
     double as_double;
   } payload;
 } data_t;
-
-typedef enum DataType data_type_t;
 
 data_t data_nil(void);
 data_t data_bool(bool b);
