@@ -41,8 +41,10 @@ perr_t parse_i64(buffer_t *buf, i64 *ret)
   return err;
 }
 
-perr_t parse_line(buffer_t *buf, op_t *op)
+perr_t parse_line(buffer_t *buf, pres_t *res)
 {
+  res->buffer_cursor = buf->cur;
+
   // Bring us to the first "token"
   buffer_seek_next(buf);
 
@@ -55,13 +57,15 @@ perr_t parse_line(buffer_t *buf, op_t *op)
   if (memcmp(buf->data + buf->cur, "noop", 4) == 0)
   {
     buf->cur += end_of_operator;
-    op->opcode = OP_NONE;
+    res->type             = PRES_IMMEDIATE;
+    res->immediate.opcode = OP_NONE;
     goto NO_OPERAND;
   }
   else if (memcmp(buf->data + buf->cur, "halt", 4) == 0)
   {
     buf->cur += end_of_operator;
-    op->opcode = OP_HALT;
+    res->type             = PRES_IMMEDIATE;
+    res->immediate.opcode = OP_HALT;
     goto NO_OPERAND;
   }
   else if (memcmp(buf->data + buf->cur, "push", 4) == 0)
@@ -69,26 +73,30 @@ perr_t parse_line(buffer_t *buf, op_t *op)
     // Seek the operand
     buf->cur += end_of_operator;
     buffer_seek_next(buf);
-    op->opcode = OP_PUSH;
-    return parse_i64(buf, &op->operand);
+    res->type             = PRES_IMMEDIATE;
+    res->immediate.opcode = OP_PUSH;
+    return parse_i64(buf, &res->immediate.operand);
   }
   else if (memcmp(buf->data + buf->cur, "plus", 4) == 0)
   {
     buf->cur += end_of_operator;
-    op->opcode = OP_PLUS;
+    res->type             = PRES_IMMEDIATE;
+    res->immediate.opcode = OP_PLUS;
     goto NO_OPERAND;
   }
   else if (memcmp(buf->data + buf->cur, "dup", 3) == 0)
   {
     buf->cur += end_of_operator;
     buffer_seek_next(buf);
-    op->opcode = OP_DUP;
-    return parse_i64(buf, &op->operand);
+    res->type             = PRES_IMMEDIATE;
+    res->immediate.opcode = OP_DUP;
+    return parse_i64(buf, &res->immediate.operand);
   }
   else if (memcmp(buf->data + buf->cur, "print", 5) == 0)
   {
     buf->cur += end_of_operator;
-    op->opcode = OP_PRINT;
+    res->type             = PRES_IMMEDIATE;
+    res->immediate.opcode = OP_PRINT;
     goto NO_OPERAND;
   }
   else if (memcmp(buf->data + buf->cur, "label", 5) == 0)
