@@ -133,6 +133,7 @@ perr_t parse_line(buffer_t *buf, pres_t *res)
     if (buffer_peek(*buf) == '-' && buffer_at_end(*buf) == BUFFER_OK &&
         isdigit(buf->data[buf->cur + 1]))
       return PERR_ILLEGAL_INST_ADDRESS;
+    // Now an actual parser for immediate jumps
     if (isdigit(buffer_peek(*buf)))
     {
       res->type             = PRES_IMMEDIATE;
@@ -159,6 +160,7 @@ perr_t parse_line(buffer_t *buf, pres_t *res)
     // First check if it is a valid label name
     size_t label_size =
         strspn(buf->data + buf->cur, PARSER_LABEL_ACCEPTED_CHARS);
+
     if (label_size == 0)
       return PERR_EXPECTED_OPERAND;
     else if (label_size != operand_size)
