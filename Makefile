@@ -31,4 +31,4 @@ test: test.out
 
 .PHONY:
 clean:
-	rm -rfv src/*.o tests/*.o tests/*.txt assembler.out interpreter.out test.out
+	git clean -fdX
