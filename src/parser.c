@@ -182,6 +182,92 @@ NO_OPERAND:
   return PERR_OK;
 }
 
+bool complete_cmp_string(char *a, char *b)
+{
+  return strlen(a) == strlen(b) && strncmp(a, b, strlen(a)) == 0;
+}
+
+perr_t process_presults(pres_t *results, size_t results_size, buffer_t *buffer,
+                        darr_t *output)
+{
+  // Process labels and relative jumps
+  struct LabelPair
+  {
+    char *name;
+    u64 iptr;
+  };
+
+  darr_t labels       = {0};
+  size_t program_size = 0;
+  darr_init(&labels, 0, sizeof(struct LabelPair));
+
+  for (size_t i = 0; i < results_size; ++i)
+  {
+    pres_t res = results[i];
+    // Not processing immediates or labels (yet) so just increment program_size
+    if (res.type == PRES_IMMEDIATE || res.type == PRES_JUMP_LABEL)
+      ++program_size;
+    else if (res.type == PRES_JUMP_RELATIVE)
+    {
+      // Get absolute program address
+      i64 abs_addr = program_size + res.relative_jump_operand;
+      if (abs_addr < 0)
+      {
+        darr_free(&labels);
+        return PERR_ILLEGAL_INST_ADDRESS;
+      }
+      (results + i)->type              = PRES_IMMEDIATE;
+      (results + i)->immediate.opcode  = OP_JUMP;
+      (results + i)->immediate.operand = abs_addr;
+      // Then register in program
+      ++program_size;
+    }
+    else if (res.type == PRES_LABEL)
+    {
+      struct LabelPair pair = {res.label_name, program_size};
+      DARR_APP(&labels, struct LabelPair, pair);
+    }
+  }
+
+  darr_init(output, program_size, sizeof(op_t));
+  // Fixup all label jumps
+  for (size_t i = 0; i < results_size; ++i)
+  {
+    pres_t res = results[i];
+    if (res.type == PRES_LABEL)
+      continue;
+    else if (res.type == PRES_IMMEDIATE)
+    {
+      DARR_APP(output, op_t, res.immediate);
+    }
+    else if (res.type == PRES_JUMP_LABEL)
+    {
+      op_t op = {0};
+      for (size_t j = 0; j < labels.used; ++j)
+      {
+        struct LabelPair pair = ((struct LabelPair *)labels.data)[j];
+        if (complete_cmp_string(pair.name, res.label_name))
+        {
+          op = OP_CREATE_JMP(pair.iptr);
+          break;
+        }
+      }
+      if (op.opcode != OP_JUMP)
+      {
+        darr_free(output);
+        darr_free(&labels);
+        buffer->cur = res.buffer_cursor;
+        return PERR_UNKNOWN_LABEL;
+      }
+      DARR_APP(output, op_t, op);
+    }
+  }
+
+  darr_free(&labels);
+
+  return PERR_OK;
+}
+
 perr_t parse_buffer(buffer_t *buf, op_t **instructions,
                     u64 *instructions_parsed)
 {
