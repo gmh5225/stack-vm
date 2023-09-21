@@ -274,27 +274,40 @@ perr_t parse_buffer(buffer_t *buf, op_t **instructions,
   if (buffer_at_end(*buf) != BUFFER_OK)
     return PERR_EOF;
 
-  darr_t darr = {0};
-  darr_init(&darr, DARR_INITAL_SIZE, sizeof(**instructions));
-  size_t parsed;
+  darr_t presults = {0};
+  darr_init(&presults, DARR_INITAL_SIZE, sizeof(pres_t));
 
   buffer_seek_nextline(buf);
-  for (parsed = 0; buffer_at_end(*buf) == BUFFER_OK; ++parsed)
+  while (buffer_at_end(*buf) == BUFFER_OK)
   {
-    op_t parsed = {0};
-    perr_t perr = parse_line(buf, &parsed);
+    pres_t pres = {0};
+    perr_t perr = parse_line(buf, &pres);
+
     if (perr != PERR_OK)
     {
-      free(darr.data);
+      darr_free(&presults);
       return perr;
     }
-    DARR_APP(&darr, op_t, parsed);
 
+    DARR_APP(&presults, pres_t, pres);
     buffer_seek_nextline(buf);
   }
-  darr_tighten(&darr);
-  *instructions        = darr.data;
-  *instructions_parsed = parsed;
+
+  darr_t processed = {0};
+  perr_t process_error =
+      process_presults(presults.data, presults.used, buf, &processed);
+
+  // Gotta free those labels
+  for (size_t i = 0; i < presults.used; ++i)
+    if (((pres_t *)presults.data)[i].type > PRES_JUMP_RELATIVE)
+      free(((pres_t *)presults.data)[i].label_name);
+  darr_free(&presults);
+
+  if (process_error != PERR_OK)
+    return process_error;
+
+  *instructions        = processed.data;
+  *instructions_parsed = processed.used;
   return PERR_OK;
 }
 
