@@ -43,7 +43,7 @@ virtual machine instance.  Also produces errors.
 =test.out=: Takes no input.  Runs unit tests.  Look for ~#define
 VERBOSE_LOGS N~ and set it to 1 to produce more verbose logs.
 * Tasks
-** TODO Write a better in memory assembler :BYTECODE:
+** TODO [#A] Write a better in memory assembler :BYTECODE:
 [[file:src/vm.c::void vm_write_program(vm_t *vm, FILE *fp)]]
 
 We need something a bit more robust, as sometimes bytes aren't
