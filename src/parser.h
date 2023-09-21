@@ -6,13 +6,6 @@
 
 #include <stdbool.h>
 
-typedef struct
-{
-  bool ok;
-  op_t *operands;
-  size_t operands_size;
-} presult_t;
-
 typedef enum
 {
   PERR_OK = 0,
@@ -27,8 +20,31 @@ typedef enum
 const char *perr_as_cstr(perr_t err);
 char *perr_generate(perr_t err, buffer_t *buf);
 
+typedef struct
+{
+  size_t buffer_cursor;
+
+  enum
+  {
+    PRES_IMMEDIATE,
+    PRES_JUMP_RELATIVE,
+    PRES_LABEL,
+    PRES_JUMP_LABEL,
+  } type;
+
+  union
+  {
+    op_t immediate;
+    char *label_name;
+    i64 relative_jump_operand;
+  };
+} pres_t;
+
 perr_t parse_i64(buffer_t *buf, i64 *ret);
-perr_t parse_line(buffer_t *, op_t *);
+
+perr_t parse_line(buffer_t *, pres_t *);
+perr_t process_presults(pres_t *, size_t, buffer_t *, darr_t *);
+
 perr_t parse_buffer(buffer_t *, op_t **, u64 *);
 
 #endif
