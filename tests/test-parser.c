@@ -7,6 +7,7 @@
 #include "./test-parser.h"
 
 #include "../src/parser.h"
+#include "test.h"
 
 #include <assert.h>
 #include <string.h>
@@ -128,8 +129,11 @@ bool test_parse_i64(void)
 
     LOG_TEST_INFO(test_ith_positive_, "Expected=%lu\n", expected);
 
+    printf("\t");
     ASSERT(test_ith_positive_correct, ret == expected);
     test_positive_correct = test_positive_correct && test_ith_positive_correct;
+
+    printf("\t");
     ASSERT(test_ith_positive_no_error, err == PERR_OK);
     test_positive_no_error =
         test_positive_no_error && test_ith_positive_no_error;
@@ -160,8 +164,11 @@ bool test_parse_i64(void)
 
     LOG_TEST_INFO(test_ith_negative_, "Expected=%ld\n", expected);
 
+    printf("\t");
     ASSERT(test_ith_negative_correct, ret == expected);
     test_negative_correct = test_negative_correct && test_ith_negative_correct;
+
+    printf("\t");
     ASSERT(test_ith_negative_no_error, err == PERR_OK);
     test_negative_no_error =
         test_negative_no_error && test_ith_negative_no_error;
@@ -187,6 +194,7 @@ bool test_parse_i64(void)
     buf              = buffer_read_cstr("*test-parse-i64*", test, strlen(test));
     err              = parse_i64(&buf, &ret);
 
+    printf("\t");
     ASSERT(test_ith_bad_got_error, err == PERR_EXPECTED_OPERAND);
     test_bad_got_error = test_bad_got_error && test_ith_bad_got_error;
 
