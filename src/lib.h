@@ -63,4 +63,6 @@ void darr_mem_insert(darr_t *, void *, size_t, size_t);
     (((TYPE *)(DARR)->data)[(DARR)->used++] = OBJ); \
   } while (0);
 
+#define DARR_MEMBER(DARR, TYPE, INDEX) ((TYPE *)(DARR)->data)[INDEX]
+
 #endif

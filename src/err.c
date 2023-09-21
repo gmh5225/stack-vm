@@ -19,9 +19,6 @@ const char *err_as_cstr(err_t e)
   case ERR_STACK_UNDERFLOW:
     return "ERR_STACK_UNDERFLOW";
     break;
-  case ERR_LABEL_OVERFLOW:
-    return "ERR_LABEL_OVERFLOW";
-    break;
   case ERR_ILLEGAL_JUMP:
     return "ERR_ILLEGAL_JUMP";
     break;

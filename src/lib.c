@@ -96,7 +96,8 @@ void darr_init(darr_t *darr, size_t initial_size, size_t member_size)
 
 void darr_free(darr_t *darr)
 {
-  free(darr->data);
+  if (darr->data)
+    free(darr->data);
 }
 
 void darr_ensure_capacity(darr_t *darr, size_t wanted)
