@@ -43,7 +43,37 @@ virtual machine instance.  Also produces errors.
 =test.out=: Takes no input.  Runs unit tests.  Look for ~#define
 VERBOSE_LOGS N~ and set it to 1 to produce more verbose logs.
 * Tasks
-** TODO Implement a tagging scheme
+** TODO Write a better in memory assembler
+[[file:src/vm.c::void vm_write_program(vm_t *vm, FILE *fp)]]
+
+We need something a bit more robust, as sometimes bytes aren't
+correctly written into the binary buffer.  Also, while it looks clean,
+it isn't consistent.
+
+2023-09-19: If we implement the tagging scheme, then the assembler
+just needs to write a tag byte then the n bytes for the payload.  This
+works the other way for the interpreter: read the tag byte then slurp
+n bytes for the payload.
+** TODO [#B] Write tests [0%] :TESTS:
+*** TODO [66%] Write tests for parser
+[[file:tests/test-parser.c]]
+**** DONE Complete test_parse_line
++ Test whitespace inclusion
+[[file:tests/test-parser.c::bool test_parse_line(void)]]
+**** DONE Test parse_i64
+[[file:src/parser.c::perr_t parse_i64(buffer_t *buf, i64 *ret)]]
+**** TODO Test parse_buffer
+[[file:src/parser.c::perr_t parse_buffer(buffer_t *buf, op_t **instructions,]]
+*** TODO [0%] Write tests for virtual machine implementation
+In particular the assembler and interpreter routines.
+[[file:tests/test-vm.c]]
+**** TODO Test vm_print_all
+**** TODO Test vm_execute
+**** TODO Test vm_execute_all
+**** TODO Test vm_copy_program
+**** TODO Test vm_write_program
+**** TODO Test vm_read_program
+** DONE Implement a tagging scheme :FEATURE:
 A tagging scheme allows us to implement a variety of types for data in
 the virtual machine.  A big problem with, say, a pointer tagging
 scheme is that we must waste a ton of space in the assembler for small
@@ -61,31 +91,5 @@ A byte is over 256 values: I don't think we're going to need 256 types
 but I don't want to have to do some weird "nibble reading" and it
 allows us to reserve a ton of types or special things for future me to
 use.
-** TODO Write a better in memory assembler
-[[file:src/vm.c::void vm_write_program(vm_t *vm, FILE *fp)]]
 
-We need something a bit more robust, as sometimes bytes aren't
-correctly written into the binary buffer.  Also, while it looks clean, ther
 
-2023-09-19: If we implement the tagging scheme, then the assembler
-just needs to write a tag byte then the n bytes for the payload.  This
-works the other way for the interpreter: read the tag byte then slurp
-n bytes for the payload.
-** TODO [66%] Write tests for parser
-[[file:tests/test-parser.c]]
-*** DONE Complete test_parse_line
-+ Test whitespace inclusion
-[[file:tests/test-parser.c::bool test_parse_line(void)]]
-*** DONE Test parse_i64
-[[file:src/parser.c::perr_t parse_i64(buffer_t *buf, i64 *ret)]]
-*** TODO Test parse_buffer
-[[file:src/parser.c::perr_t parse_buffer(buffer_t *buf, op_t **instructions,]]
-** TODO [0%] Write tests for virtual machine implementation
-In particular the assembler and interpreter routines.
-[[file:tests/test-vm.c]]
-*** TODO Test vm_print_all
-*** TODO Test vm_execute
-*** TODO Test vm_execute_all
-*** TODO Test vm_copy_program
-*** TODO Test vm_write_program
-*** TODO Test vm_read_program
