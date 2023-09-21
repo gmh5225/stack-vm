@@ -310,8 +310,14 @@ const char *perr_as_cstr(perr_t err)
     return "PERR_UNEXPECTED_OPERAND";
   case PERR_ILLEGAL_OPERATOR:
     return "PERR_ILLEGAL_OPERATOR";
+  case PERR_ILLEGAL_INST_ADDRESS:
+    return "PERR_ILLEGAL_INST_ADDRESS";
+  case PERR_UNKNOWN_LABEL:
+    return "PERR_UNKNOWN_LABEL";
   case PERR_EOF:
     return "PERR_EOF";
+  case PERR_EXPECTED_LABEL:
+    return "PERR_EXPECTED_LABEL";
   case NUMBER_OF_PERRORS:
     // This really shouldn't happen
   default:
