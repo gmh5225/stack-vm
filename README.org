@@ -73,6 +73,9 @@ In particular the assembler and interpreter routines.
 **** TODO Test vm_copy_program
 **** TODO Test vm_write_program
 **** TODO Test vm_read_program
+** TODO [#C] Optimise processor for parse results
+[[file:src/parser.c::perr_t process_presults(pres_t *results, size_t
+results_size, buffer_t *buffer,]]
 ** DONE Implement a tagging scheme :FEATURE:
 A tagging scheme allows us to implement a variety of types for data in
 the virtual machine.  A big problem with, say, a pointer tagging
