@@ -44,6 +44,8 @@ bytecode but not great as an in memory representation
 [[file:tests/test-parser.c::bool test_parse_line(void)]]
 *** DONE Test parse_i64
 [[file:src/parser.c::perr_t parse_i64(buffer_t *buf, i64 *ret)]]
+*** DONE Test parse_line
+[[file:src/parser.c::perr_t parse_line(buffer_t *buf, pres_t *res)]]
 *** TODO Test parse_buffer
 [[file:src/parser.c::perr_t parse_buffer(buffer_t *buf, op_t **instructions,]]
 ** TODO [0%] Write tests for virtual machine implementation
