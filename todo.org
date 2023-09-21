@@ -4,7 +4,7 @@
 #+date: 2023-09-21
 
 
-* TODO [#A] Write a better in memory assembler :BYTECODE:
+* WIP [#A] Write a better in memory assembler :BYTECODE:
 [[file:src/vm.c::void vm_write_program(vm_t *vm, FILE *fp)]]
 
 We need something a bit more robust, as sometimes bytes aren't
@@ -15,6 +15,27 @@ it isn't consistent.
 just needs to write a tag byte then the n bytes for the payload.  This
 works the other way for the interpreter: read the tag byte then slurp
 n bytes for the payload.
+** WIP Implement a tagging scheme :FEATURE:
+A tagging scheme allows us to implement a variety of types for data in
+the virtual machine.  A big problem with, say, a pointer tagging
+scheme is that we must waste a ton of space in the assembler for small
+types.  For example, a boolean needs only a bit to work but we must
+force it to waste 63 bits of extra space just to make it uniform.  A
+character (at least the C style ones) only need a byte, but we'll need
+to encode 7 waste bytes to make it uniform.
+
+Here's a really simple scheme:
++ A "tag" byte which tells the interpreter what type of data and how
+  many bytes of data the subsequent operand is
++ The payload
+
+A byte is over 256 values: I don't think we're going to need 256 types
+but I don't want to have to do some weird "nibble reading" and it
+allows us to reserve a ton of types or special things for future me to
+use.
+
+2023-09-21: Reopened as current implementation is good at writing
+bytecode but not great as an in memory representation
 * TODO [#B] Write tests [0%] :TESTS:
 ** TODO [66%] Write tests for parser
 [[file:tests/test-parser.c]]
@@ -37,25 +58,8 @@ In particular the assembler and interpreter routines.
 * TODO [#C] Optimise processor for parse results
 [[file:src/parser.c::perr_t process_presults(pres_t *results, size_t
 results_size, buffer_t *buffer,]]
-* DONE Implement a tagging scheme :FEATURE:
-A tagging scheme allows us to implement a variety of types for data in
-the virtual machine.  A big problem with, say, a pointer tagging
-scheme is that we must waste a ton of space in the assembler for small
-types.  For example, a boolean needs only a bit to work but we must
-force it to waste 63 bits of extra space just to make it uniform.  A
-character (at least the C style ones) only need a byte, but we'll need
-to encode 7 waste bytes to make it uniform.
-
-Here's a really simple scheme:
-+ A "tag" byte which tells the interpreter what type of data and how
-  many bytes of data the subsequent operand is
-+ The payload
-
-A byte is over 256 values: I don't think we're going to need 256 types
-but I don't want to have to do some weird "nibble reading" and it
-allows us to reserve a ton of types or special things for future me to
-use.
-* DONE Rewrite simple execution control (OP_JUMP) [100%] :PARSER:BYTECODE:
+* Completed
+** DONE Rewrite simple execution control (OP_JUMP) [100%] :PARSER:BYTECODE:
 Previous implementation had separate instructions for jumping
 relatively and to a label, and an instruction for instantiating a
 label.  This adds some bloat to the runtime in managing labels (as
@@ -69,9 +73,9 @@ the parser to instead /rewrite/ the source code to use it?  This means
 we'd have to do /multiple passes/ on the parsed data to figure out
 where labels are and rewrite the various jumps to use absolute
 pointers.
-** DONE Rewrite parser for label
+*** DONE Rewrite parser for label
 [[file:src/parser.c::else if (memcmp(buf->data + buf->cur, "label", 5)
 == 0)]]
-** DONE Rewrite parser for jump
+*** DONE Rewrite parser for jump
 [[file:src/parser.c::else if (memcmp(buf->data + buf->cur, "jmp", 3)
 == 0)]]
