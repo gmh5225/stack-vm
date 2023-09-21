@@ -43,7 +43,7 @@ virtual machine instance.  Also produces errors.
 =test.out=: Takes no input.  Runs unit tests.  Look for ~#define
 VERBOSE_LOGS N~ and set it to 1 to produce more verbose logs.
 * Tasks
-** TODO Write a better in memory assembler
+** TODO Write a better in memory assembler :BYTECODE:
 [[file:src/vm.c::void vm_write_program(vm_t *vm, FILE *fp)]]
 
 We need something a bit more robust, as sometimes bytes aren't
@@ -54,6 +54,26 @@ it isn't consistent.
 just needs to write a tag byte then the n bytes for the payload.  This
 works the other way for the interpreter: read the tag byte then slurp
 n bytes for the payload.
+** TODO [#A] Rewrite simple execution control (OP_JUMP) [0%] :PARSER:BYTECODE:
+Previous implementation had separate instructions for jumping
+relatively and to a label, and an instruction for instantiating a
+label.  This adds some bloat to the runtime in managing labels (as
+well as possible error conditions on the label stack) and the parser
+in distinguishing between jumps.  One pro is that this makes the
+parser "one-pass" i.e. only requires one run through source code to
+generate all the necessary instructions.
+
+Instead, how about just implementing one *absolute* jump and reworking
+the parser to instead /rewrite/ the source code to use it?  This means
+we'd have to do /multiple passes/ on the parsed data to figure out
+where labels are and rewrite the various jumps to use absolute
+pointers.
+*** TODO Rewrite parser for label
+[[file:src/parser.c::else if (memcmp(buf->data + buf->cur, "label", 5)
+== 0)]]
+*** TODO Rewrite parser for jump
+[[file:src/parser.c::else if (memcmp(buf->data + buf->cur, "jmp", 3)
+== 0)]]
 ** TODO [#B] Write tests [0%] :TESTS:
 *** TODO [66%] Write tests for parser
 [[file:tests/test-parser.c]]
