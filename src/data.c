@@ -185,10 +185,10 @@ size_t data_type_bytecode_size(data_type_t type)
   case DATA_CHARACTER:
     return 2;
   case DATA_FLOAT:
-    return 5;
+    return sizeof(float) + 1;
   case DATA_INT:
   case DATA_UINT:
-    return 9;
+    return sizeof(i64) + 1;
   case NUMBER_OF_DATATYPES:
   default:
     return 0;
