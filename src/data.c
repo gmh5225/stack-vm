@@ -98,6 +98,29 @@ data_type_t data_type(data_t *d)
   return DATA_NIL;
 }
 
+void data_numerics_promote_on_float(data_t **a, data_type_t *type_a, data_t **b,
+                                    data_type_t *type_b)
+{
+  // If neither are numerics then stop
+  if (!(data_type_is_numeric(*type_a) && data_type_is_numeric(*type_b)))
+    return;
+
+  data_t **ptr      = NULL;
+  data_type_t *type = NULL;
+  if (*type_a == DATA_FLOAT)
+  {
+    ptr  = b;
+    type = type_b;
+  }
+  else if (*type_b == DATA_FLOAT)
+  {
+    ptr  = a;
+    type = type_a;
+  }
+  *ptr  = data_numeric_cast(*ptr, DATA_FLOAT);
+  *type = DATA_FLOAT;
+}
+
 void data_print(data_t *d, FILE *fp)
 {
   data_type_t type = data_type(d);
@@ -126,6 +149,11 @@ void data_print(data_t *d, FILE *fp)
     fprintf(fp, "<UNKNOWN:%" PRIu64 ">", (word)d);
     break;
   }
+}
+
+bool data_type_is_numeric(data_type_t t)
+{
+  return t >= DATA_INT && t < NUMBER_OF_DATATYPES;
 }
 
 data_t *data_numeric_cast(data_t *d, data_type_t t)

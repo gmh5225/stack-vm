@@ -14,7 +14,7 @@ typedef struct
   op_t program[VM_PROGRAM_MAX];
   word iptr, size_program;
 
-  i64 stack[VM_STACK_MAX];
+  data_t *stack[VM_STACK_MAX];
   word sptr;
 } vm_t;
 

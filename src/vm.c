@@ -32,7 +32,8 @@ void vm_print_all(vm_t *vm, FILE *fp)
     for (i64 i = vm->sptr - 1; i >= 0; --i)
     {
       fprintf(fp, "\t");
-      fprintf(fp, "%" PRId64 "\n", vm->stack[i]);
+      data_print(vm->stack[i], fp);
+      fprintf(fp, "\n");
     }
     fprintf(fp, "}\n");
   }
@@ -63,13 +64,58 @@ err_t vm_execute(vm_t *vm)
   case OP_PLUS:
     if (vm->sptr < 2)
       return ERR_STACK_UNDERFLOW;
-    i64 a = vm->stack[vm->sptr - 2];
-    i64 b = vm->stack[vm->sptr - 1];
-    if (a > 0 && (b > (INT64_MAX - a)))
-      return ERR_INTEGER_OVERFLOW;
-    else if (a < 0 && b < (INT64_MIN - a))
-      return ERR_INTEGER_UNDERFLOW;
-    vm->stack[vm->sptr - 2] += b;
+    data_t *a = vm->stack[vm->sptr - 2];
+    data_t *b = vm->stack[vm->sptr - 1];
+
+    data_type_t a_ = data_type(a);
+    data_type_t b_ = data_type(b);
+
+    if (!(data_type_is_numeric(a_) && data_type_is_numeric(b_)))
+      return ERR_ILLEGAL_OPERAND;
+
+    data_numerics_promote_on_float(&a, &a_, &b, &b_);
+
+    // Check if float (if so, just add now)
+    if (a_ == DATA_FLOAT)
+    {
+      vm->stack[vm->sptr - 2] = data_float(data_as_float(a) * data_as_float(b));
+    }
+    else if ((a_ == DATA_INT && b_ == DATA_UINT) ||
+             (a_ == DATA_UINT && b_ == DATA_INT))
+    {
+      u64 c = data_as_uint(a_ == DATA_INT ? b : a);
+      i64 d = data_as_int(a_ == DATA_INT ? a : b);
+      if (d > 0 && (c > (UINT60_MAX - d)))
+        // Integer overflow
+        return ERR_INTEGER_OVERFLOW;
+      // Cast to integer
+      else if (d < 0)
+        vm->stack[vm->sptr - 2] = data_int(c + d);
+      else
+        // Cast to unsigned
+        vm->stack[vm->sptr - 2] = data_uint(c + d);
+    }
+    else if (a_ == DATA_INT)
+    {
+      i64 c = data_as_int(a);
+      i64 d = data_as_int(b);
+
+      if (c > 0 && (d > (INT64_MAX - c)))
+        return ERR_INTEGER_OVERFLOW;
+      else if (c < 0 && d < (INT64_MIN - c))
+        return ERR_INTEGER_UNDERFLOW;
+      vm->stack[vm->sptr - 2] = data_int(c + d);
+    }
+    else
+    {
+      u64 c = data_as_uint(a);
+      u64 d = data_as_uint(b);
+
+      if (d > (INT64_MAX - c))
+        return ERR_INTEGER_OVERFLOW;
+      vm->stack[vm->sptr - 2] = data_uint(c + d);
+    }
+
     vm->sptr--;
     vm->iptr++;
     break;
@@ -78,21 +124,28 @@ err_t vm_execute(vm_t *vm)
       return ERR_STACK_UNDERFLOW;
     else if (vm->sptr >= VM_STACK_MAX)
       return ERR_STACK_OVERFLOW;
-    vm->stack[vm->sptr] = vm->stack[vm->sptr - 1 - op.operand];
+    else if (data_type(op.operand) != DATA_UINT)
+      return ERR_ILLEGAL_OPERAND;
+    vm->stack[vm->sptr] = vm->stack[vm->sptr - 1 - data_as_uint(op.operand)];
     vm->sptr++;
     vm->iptr++;
     break;
   case OP_PRINT:
     if (vm->sptr == 0)
       return ERR_STACK_UNDERFLOW;
-    printf("%" PRId64 "\n", vm->stack[vm->sptr - 1]);
+    data_print(vm->stack[vm->sptr - 1], stdout);
+    printf("\n");
     vm->iptr++;
     break;
-  case OP_JUMP:
-    if (op.operand < 0 || ((u64)op.operand) > vm->size_program)
+  case OP_JUMP: {
+    data_type_t type = data_type(op.operand);
+    if (!data_type_is_numeric(type))
+      return ERR_ILLEGAL_OPERAND;
+    if (type != DATA_UINT || data_as_uint(op.operand) > vm->size_program)
       return ERR_ILLEGAL_JUMP;
-    vm->iptr = op.operand;
+    vm->iptr = data_as_uint(op.operand);
     break;
+  }
   case NUMBER_OF_OPERATORS:
   default:
     return ERR_ILLEGAL_INSTRUCTION;

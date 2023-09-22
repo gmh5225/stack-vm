@@ -21,7 +21,8 @@ const char *err_as_cstr(err_t e)
     break;
   case ERR_ILLEGAL_JUMP:
     return "ERR_ILLEGAL_JUMP";
-    break;
+  case ERR_ILLEGAL_OPERAND:
+    return "ERR_ILLEGAL_OPERAND";
   case ERR_ILLEGAL_INSTRUCTION:
     return "ERR_ILLEGAL_INSTRUCTION";
     break;

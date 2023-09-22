@@ -67,6 +67,7 @@ typedef struct Data data_t;
 #define INT60_MAX  ((1LL << 60) - 1)
 #define INT60_MIN  (-(1LL << 60))
 
+/* Constructors */
 data_t *data_nil(void);
 data_t *data_bool(bool b);
 data_t *data_char(char c);
@@ -74,6 +75,7 @@ data_t *data_float(float f);
 data_t *data_int(i64 i);
 data_t *data_uint(u64 u);
 
+/* Destructors */
 bool data_as_bool(data_t *);
 char data_as_char(data_t *);
 float data_as_float(data_t *);
@@ -82,8 +84,14 @@ u64 data_as_uint(data_t *);
 
 void data_print(data_t *, FILE *);
 
+/* Type programming */
 data_type_t data_type(data_t *);
+bool data_type_is_numeric(data_type_t);
 data_t *data_numeric_cast(data_t *, data_type_t);
+void data_numerics_promote_on_float(data_t **, data_type_t *, data_t **,
+                                    data_type_t *);
+
+/* Dealing with bytecode */
 
 size_t data_type_bytecode_size(data_type_t);
 
