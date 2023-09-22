@@ -14,23 +14,42 @@
 
 void usage(FILE *fp)
 {
-  fputs("./assembler.out [FILE] [OUTPUT]\n"
-        "\\tAssemble FILE into bytecode, stored at OUTPUT\n"
+  fputs("./assembler.out [FILE] [OUTPUT]?\n"
+        "\tAssemble FILE into bytecode, stored at OUTPUT\n"
         "\tFILE: File name for assembly code\n"
-        "\tOUTPUT: File name for bytecode storage (will be overwritten)\n",
+        "\tOUTPUT: Optional file name for bytecode storage (will be "
+        "overwritten)\n",
         fp);
+}
+
+void gen_output_filename(const char *name, size_t name_size, char *buffer)
+{
+  memcpy(buffer, name, name_size + 1);
+  char *ext = strstr(buffer, ".asm");
+  memcpy(ext, ".out", 4);
 }
 
 int main(int argc, char *argv[])
 {
-  if (argc < 3)
+  if (argc < 2)
   {
     usage(stderr);
     return 0;
   }
 
-  const char *in_name  = argv[1];
-  const char *out_name = argv[2];
+  bool generated_output = false;
+  const char *in_name   = argv[1];
+  char *out_name        = NULL;
+
+  if (argc > 2)
+    out_name = argv[2];
+  else
+  {
+    generated_output = true;
+    size_t name_size = strlen(in_name);
+    out_name         = calloc(name_size + 1, sizeof(*out_name));
+    gen_output_filename(in_name, name_size, out_name);
+  }
 
   int ret            = 0;
   buffer_t buf       = {0};
@@ -40,8 +59,9 @@ int main(int argc, char *argv[])
   FILE *fp = fopen(in_name, "rb");
   if (!fp)
   {
-    fprintf(stderr, "[ERROR]: Could not read file `%s`: %s\n", in_name,
-            strerror(errno));
+    fprintf(stderr,
+            "[" TERM_RED "ERROR" TERM_RESET "]: Could not read file `%s`: %s\n",
+            in_name, strerror(errno));
     usage(stderr);
     ret = 1;
     goto error;
@@ -58,7 +78,7 @@ int main(int argc, char *argv[])
   if (err != PERR_OK)
   {
     char *reason = perr_generate(err, &buf);
-    fprintf(stderr, "%s\n", reason);
+    fprintf(stderr, "[" TERM_RED "ERROR" TERM_RESET "]: %s\n", reason);
     free(reason);
     usage(stderr);
     ret = 255 - err;
@@ -73,8 +93,9 @@ int main(int argc, char *argv[])
   fp = fopen(out_name, "wb");
   if (!fp)
   {
-    fprintf(stderr, "[ERROR]: Could not open file `%s`: %s\n", in_name,
-            strerror(errno));
+    fprintf(stderr,
+            "[" TERM_RED "ERROR" TERM_RESET "]: Could not open file `%s`: %s\n",
+            in_name, strerror(errno));
     usage(stderr);
     ret = 1;
     goto error;
@@ -83,7 +104,12 @@ int main(int argc, char *argv[])
   vm_write_program(&vm, fp);
   fclose(fp);
 
-  printf("[INFO]: Successfully compiled `%s`->`%s`", in_name, out_name);
+  printf("[" TERM_GREEN "INFO" TERM_RESET
+         "]: Successfully compiled `%s`->`%s`\n",
+         in_name, out_name);
+
+  if (generated_output)
+    free(out_name);
 
   return 0;
 error:
@@ -91,5 +117,7 @@ error:
     free(buf.data);
   if (instructions)
     free(instructions);
+  if (generated_output)
+    free(out_name);
   return ret;
 }

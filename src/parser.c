@@ -26,19 +26,42 @@ size_t get_size_i64(char *str, size_t max_size)
   return i; // EOF
 }
 
-perr_t parse_i64(buffer_t *buf, i64 *ret)
+perr_t parse_u64(buffer_t *buf, data_t **ret)
 {
   if (buffer_at_end(*buf) == BUFFER_PAST_END)
     return PERR_EOF;
-  perr_t err           = PERR_OK;
+  char *operand = buf->data + buf->cur;
+  if (operand[0] == '-')
+    return PERR_ILLEGAL_INST_ADDRESS;
+  size_t end_of_number = get_size_i64(operand, buf->available - buf->cur);
+  u64 number           = 0;
+  if (end_of_number != 0)
+  {
+    number = strtoull(operand, NULL, 10);
+    buf->cur += end_of_number;
+    *ret = data_uint(number);
+    return PERR_OK;
+  }
+  else
+    return PERR_EXPECTED_OPERAND; // catch all
+}
+
+perr_t parse_i64(buffer_t *buf, data_t **ret)
+{
+  if (buffer_at_end(*buf) == BUFFER_PAST_END)
+    return PERR_EOF;
   char *operand        = buf->data + buf->cur;
   size_t end_of_number = get_size_i64(operand, buf->available - buf->cur);
+  i64 number           = 0;
   if (end_of_number != 0)
-    *ret = atoll(operand);
+  {
+    number = atoll(operand);
+    buf->cur += end_of_number;
+    *ret = data_int(number);
+    return PERR_OK;
+  }
   else
-    err = PERR_EXPECTED_OPERAND; // catch all
-  buf->cur += end_of_number;
-  return err;
+    return PERR_EXPECTED_OPERAND; // catch all
 }
 
 perr_t parse_line(buffer_t *buf, pres_t *res)
@@ -90,7 +113,7 @@ perr_t parse_line(buffer_t *buf, pres_t *res)
     buffer_seek_next(buf);
     res->type             = PRES_IMMEDIATE;
     res->immediate.opcode = OP_DUP;
-    return parse_i64(buf, &res->immediate.operand);
+    return parse_u64(buf, &res->immediate.operand);
   }
   else if (memcmp(buf->data + buf->cur, "print", 5) == 0)
   {
@@ -138,7 +161,7 @@ perr_t parse_line(buffer_t *buf, pres_t *res)
     {
       res->type             = PRES_IMMEDIATE;
       res->immediate.opcode = OP_JUMP;
-      perr_t err            = parse_i64(buf, &res->immediate.operand);
+      perr_t err            = parse_u64(buf, &res->immediate.operand);
       if (err != PERR_OK)
         return err;
       else
@@ -178,6 +201,7 @@ perr_t parse_line(buffer_t *buf, pres_t *res)
   else
     return PERR_ILLEGAL_OPERATOR;
 NO_OPERAND:
+  res->immediate.operand = data_nil();
   buffer_seek_next(buf);
   if (buffer_at_end(*buf) == BUFFER_OK && buf->data[buf->cur] != '\n')
     return PERR_UNEXPECTED_OPERAND;
@@ -212,7 +236,8 @@ perr_t process_presults(pres_t *results, size_t results_size, buffer_t *buffer,
     else if (res.type == PRES_JUMP_RELATIVE)
     {
       // Get absolute program address
-      i64 abs_addr = program_size + res.relative_jump_operand;
+      i64 addr     = data_as_int(res.relative_jump_operand);
+      i64 abs_addr = program_size + addr;
       if (abs_addr < 0)
       {
         darr_free(&labels);
@@ -220,7 +245,7 @@ perr_t process_presults(pres_t *results, size_t results_size, buffer_t *buffer,
       }
       (results + i)->type              = PRES_IMMEDIATE;
       (results + i)->immediate.opcode  = OP_JUMP;
-      (results + i)->immediate.operand = abs_addr;
+      (results + i)->immediate.operand = data_int(abs_addr);
       // Then register in program
       ++program_size;
     }
@@ -250,7 +275,7 @@ perr_t process_presults(pres_t *results, size_t results_size, buffer_t *buffer,
         struct LabelPair pair = ((struct LabelPair *)labels.data)[j];
         if (complete_cmp_string(pair.name, res.label_name))
         {
-          op = OP_CREATE_JMP(pair.iptr);
+          op = OP_CREATE_JMP(data_uint(pair.iptr));
           break;
         }
       }

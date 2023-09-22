@@ -14,7 +14,7 @@ void vm_print_all(vm_t *vm, FILE *fp)
   fprintf(fp, "Program={\n");
   for (size_t i = 0; i < vm->size_program; ++i)
   {
-    fprintf(fp, "\t");
+    fprintf(fp, "  %lu: ", i);
     op_print(vm->program[i], fp);
     if (i == vm->iptr)
       fprintf(fp, "<--");
@@ -31,8 +31,9 @@ void vm_print_all(vm_t *vm, FILE *fp)
     fprintf(fp, "Stack={\n");
     for (i64 i = vm->sptr - 1; i >= 0; --i)
     {
-      fprintf(fp, "\t");
-      fprintf(fp, "%" PRId64 "\n", vm->stack[i]);
+      fprintf(fp, "  ");
+      data_print(vm->stack[i], fp);
+      fprintf(fp, "\n");
     }
     fprintf(fp, "}\n");
   }
@@ -63,13 +64,58 @@ err_t vm_execute(vm_t *vm)
   case OP_PLUS:
     if (vm->sptr < 2)
       return ERR_STACK_UNDERFLOW;
-    i64 a = vm->stack[vm->sptr - 2];
-    i64 b = vm->stack[vm->sptr - 1];
-    if (a > 0 && (b > (INT64_MAX - a)))
-      return ERR_INTEGER_OVERFLOW;
-    else if (a < 0 && b < (INT64_MIN - a))
-      return ERR_INTEGER_UNDERFLOW;
-    vm->stack[vm->sptr - 2] += b;
+    data_t *a = vm->stack[vm->sptr - 2];
+    data_t *b = vm->stack[vm->sptr - 1];
+
+    data_type_t a_ = data_type(a);
+    data_type_t b_ = data_type(b);
+
+    if (!(data_type_is_numeric(a_) && data_type_is_numeric(b_)))
+      return ERR_ILLEGAL_TYPE;
+
+    data_numerics_promote_on_float(&a, &a_, &b, &b_);
+
+    // Check if float (if so, just add now)
+    if (a_ == DATA_FLOAT)
+    {
+      vm->stack[vm->sptr - 2] = data_float(data_as_float(a) * data_as_float(b));
+    }
+    else if ((a_ == DATA_INT && b_ == DATA_UINT) ||
+             (a_ == DATA_UINT && b_ == DATA_INT))
+    {
+      u64 c = data_as_uint(a_ == DATA_INT ? b : a);
+      i64 d = data_as_int(a_ == DATA_INT ? a : b);
+      if (d > 0 && (c > (UINT60_MAX - d)))
+        // Integer overflow
+        return ERR_INTEGER_OVERFLOW;
+      // Cast to integer
+      else if (d < 0)
+        vm->stack[vm->sptr - 2] = data_int(c + d);
+      else
+        // Cast to unsigned
+        vm->stack[vm->sptr - 2] = data_uint(c + d);
+    }
+    else if (a_ == DATA_INT)
+    {
+      i64 c = data_as_int(a);
+      i64 d = data_as_int(b);
+
+      if (c > 0 && (d > (INT60_MAX - c)))
+        return ERR_INTEGER_OVERFLOW;
+      else if (c < 0 && d < (INT60_MIN - c))
+        return ERR_INTEGER_UNDERFLOW;
+      vm->stack[vm->sptr - 2] = data_int(c + d);
+    }
+    else
+    {
+      u64 c = data_as_uint(a);
+      u64 d = data_as_uint(b);
+
+      if (d > (INT64_MAX - c))
+        return ERR_INTEGER_OVERFLOW;
+      vm->stack[vm->sptr - 2] = data_uint(c + d);
+    }
+
     vm->sptr--;
     vm->iptr++;
     break;
@@ -78,21 +124,28 @@ err_t vm_execute(vm_t *vm)
       return ERR_STACK_UNDERFLOW;
     else if (vm->sptr >= VM_STACK_MAX)
       return ERR_STACK_OVERFLOW;
-    vm->stack[vm->sptr] = vm->stack[vm->sptr - 1 - op.operand];
+    else if (data_type(op.operand) != DATA_UINT)
+      return ERR_ILLEGAL_TYPE;
+    vm->stack[vm->sptr] = vm->stack[vm->sptr - 1 - data_as_uint(op.operand)];
     vm->sptr++;
     vm->iptr++;
     break;
   case OP_PRINT:
     if (vm->sptr == 0)
       return ERR_STACK_UNDERFLOW;
-    printf("%" PRId64 "\n", vm->stack[vm->sptr - 1]);
+    data_print(vm->stack[vm->sptr - 1], stdout);
+    printf("\n");
     vm->iptr++;
     break;
-  case OP_JUMP:
-    if (op.operand < 0 || ((u64)op.operand) > vm->size_program)
+  case OP_JUMP: {
+    data_type_t type = data_type(op.operand);
+    if (!data_type_is_numeric(type))
+      return ERR_ILLEGAL_TYPE;
+    if (type != DATA_UINT || data_as_uint(op.operand) > vm->size_program)
       return ERR_ILLEGAL_JUMP;
-    vm->iptr = op.operand;
+    vm->iptr = data_as_uint(op.operand);
     break;
+  }
   case NUMBER_OF_OPERATORS:
   default:
     return ERR_ILLEGAL_INSTRUCTION;
@@ -119,18 +172,149 @@ void vm_copy_program(vm_t *vm, op_t *ops, size_t size_ops)
 
 void vm_write_program(vm_t *vm, FILE *fp)
 {
-  fwrite(vm->program, sizeof(vm->program[0]), vm->size_program, fp);
+  darr_t bytes = {0};
+  darr_init(&bytes, 1, sizeof(byte));
+  for (size_t i = 0; i < vm->size_program; ++i)
+  {
+#if VERBOSE == 1
+    printf("[INFO]: Assembling `");
+    op_print(vm->program[i], stdout);
+    puts("`");
+#endif
+    size_t size = 0;
+    if (vm->program[i].opcode >= OP_PUSH)
+    {
+      data_type_t type = data_type(vm->program[i].operand);
+      size             = data_type_bytecode_size(type) + 1;
+      byte bytecode[size];
+
+      bytecode[0] = vm->program[i].opcode;
+      if (vm->program[i].opcode >= OP_PUSH)
+        data_write(vm->program[i].operand, bytecode + 1);
+
+      darr_mem_append(&bytes, (byte *)bytecode, size);
+    }
+    else
+    {
+      size = 1;
+      darr_mem_append(&bytes, &vm->program[i].opcode, 1);
+    }
+
+#if VERBOSE == 1
+    printf("[INFO]: Assembled %lu bytes\n", size + 1);
+#endif
+  }
+  fwrite(bytes.data, sizeof(byte), bytes.used, fp);
+  darr_free(&bytes);
 }
 
-void vm_read_program(vm_t *vm, FILE *fp)
+err_t read_numeric_from_bytes(buffer_t *buffer, op_t *ret)
 {
-  fseek(fp, 0, SEEK_END);
-  long size = ftell(fp);
-  fseek(fp, 0, SEEK_SET);
+  byte tag = buffer_pop(buffer);
+  if (!data_type_is_numeric(tag))
+    return ERR_ILLEGAL_TYPE;
 
-  size_t program_size = size / sizeof(vm->program[0]);
-  op_t program[program_size];
+  size_t offset = data_type_bytecode_size(tag) - 1;
 
-  fread(program, sizeof(program[0]), program_size, fp);
-  vm_copy_program(vm, program, program_size);
+  if (buffer_space_left(*buffer) < offset)
+    return ERR_BYTECODE_EOF;
+
+  ret->operand = data_read(tag, ((byte *)buffer->data) + buffer->cur);
+  buffer->cur += offset;
+  return ERR_OK;
+}
+
+err_t read_type_from_bytes(buffer_t *buffer, data_type_t type, op_t *ret)
+{
+  byte tag = buffer_pop(buffer);
+
+  if (tag != type)
+    return ERR_ILLEGAL_TYPE;
+  else if (tag == DATA_NIL)
+  {
+    ret->operand = data_nil();
+    return ERR_OK;
+  }
+
+  size_t offset = data_type_bytecode_size(type) - 1;
+
+  if (buffer_space_left(*buffer) < offset)
+    return ERR_BYTECODE_EOF;
+
+  ret->operand = data_read(type, ((byte *)buffer->data) + buffer->cur);
+  buffer->cur += offset;
+  return ERR_OK;
+}
+
+err_t vm_read_program(vm_t *vm, buffer_t *buffer)
+{
+  size_t j = 0;
+  while (j < VM_PROGRAM_MAX && buffer_at_end(*buffer) != BUFFER_PAST_END)
+  {
+    // first byte is an opcode
+    inst_t opcode = buffer_pop(buffer);
+    switch (opcode)
+    {
+    case OP_NONE: {
+      vm->program[j].opcode    = OP_NONE;
+      vm->program[j++].operand = data_nil();
+      break;
+    }
+    case OP_HALT: {
+      vm->program[j].opcode    = OP_HALT;
+      vm->program[j++].operand = data_nil();
+      break;
+    }
+    case OP_PUSH: {
+      vm->program[j].opcode = OP_PUSH;
+      // If data is "not numeric" then you can't push it
+      err_t err_read_type =
+          read_numeric_from_bytes(buffer, vm->program + (j++));
+      if (err_read_type != ERR_OK)
+        return err_read_type;
+      break;
+    }
+    case OP_PLUS: {
+      vm->program[j].opcode    = OP_PLUS;
+      vm->program[j++].operand = data_nil();
+      break;
+    }
+    case OP_DUP: {
+      vm->program[j].opcode = OP_DUP;
+      err_t err_read_type =
+          read_type_from_bytes(buffer, DATA_UINT, vm->program + (j++));
+      if (err_read_type != ERR_OK)
+        return err_read_type;
+      break;
+    }
+    case OP_PRINT: {
+      vm->program[j].opcode    = OP_PRINT;
+      vm->program[j++].operand = data_nil();
+      break;
+    }
+    case OP_JUMP: {
+      vm->program[j].opcode = OP_JUMP;
+      err_t err_read_type =
+          read_type_from_bytes(buffer, DATA_UINT, vm->program + (j++));
+      if (err_read_type != ERR_OK)
+        return err_read_type;
+      break;
+    }
+    case NUMBER_OF_OPERATORS:
+    default:
+      return ERR_ILLEGAL_INSTRUCTION;
+    }
+
+#if VERBOSE == 1
+    printf("[INFO]: Read instruction `");
+    op_print(vm->program[j - 1], stdout);
+    printf("` from file\n");
+#endif
+  }
+
+  if (j == VM_PROGRAM_MAX)
+    assert(false && "vm_read_program: Program is larger than VM_PROGRAM_MAX");
+
+  vm->size_program = j;
+  return ERR_OK;
 }

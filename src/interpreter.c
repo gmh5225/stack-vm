@@ -31,20 +31,38 @@ int main(int argc, char *argv[])
 
   vm_t vm               = {0};
   const char *file_name = argv[1];
-  FILE *fp              = fopen(file_name, "rb");
+
+  FILE *fp = fopen(file_name, "rb");
   if (!fp)
   {
-    fprintf(stderr, "[ERROR]: Could not read file `%s`: %s\n", file_name,
-            strerror(errno));
+    fprintf(stderr,
+            "[" TERM_RED "ERROR" TERM_RESET "]: Could not read file `%s`: %s\n",
+            file_name, strerror(errno));
     usage(stderr);
     return 1;
   }
-  vm_read_program(&vm, fp);
+  buffer_t buffer = buffer_read_file(file_name, fp);
   fclose(fp);
-  err_t err = vm_execute_all(&vm);
-  if (err != ERR_OK)
+
+  err_t err_read = vm_read_program(&vm, &buffer);
+
+  free(buffer.data);
+
+  if (err_read != ERR_OK)
   {
-    fprintf(stderr, "[ERROR]: %s\n[ERROR]: Trace:\n", err_as_cstr(err));
+    char *message = err_generate(err_read, &buffer);
+    fprintf(stderr, "%s (in reading `%s`)\n", message, file_name);
+    free(message);
+    return -1;
+  }
+
+  err_t err_exec = vm_execute_all(&vm);
+  if (err_exec != ERR_OK)
+  {
+    fprintf(stderr,
+            "[" TERM_RED "ERROR" TERM_RESET "]: %s\n[" TERM_RED
+            "ERROR" TERM_RESET "]: Trace:\n",
+            err_as_cstr(err_exec));
     vm_print_all(&vm, stderr);
     return -1;
   }

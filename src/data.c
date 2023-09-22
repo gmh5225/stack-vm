@@ -5,194 +5,313 @@
  */
 
 #include "./data.h"
+#include "./lib.h"
 
 #include <assert.h>
+#include <float.h>
 #include <string.h>
 
-data_t data_nil(void)
+data_t *data_nil(void)
 {
-  return (data_t){0};
+  return (data_t *)TAG(0LU, MASK_NIL, TAG_NIL);
 }
 
-data_t data_bool(bool b)
+data_t *data_bool(bool b)
 {
-  return (data_t){.type = DATA_BOOLEAN, .payload = {.as_bool = b}};
+  // Copy bits
+  word w = b;
+  // Reserve space for tag
+  w <<= BITS_BOOLEAN;
+  return (data_t *)TAG((word)w, MASK_BOOLEAN, TAG_BOOLEAN);
 }
 
-data_t data_char(char c)
+data_t *data_char(char c)
 {
-  return (data_t){.type = DATA_CHARACTER, .payload = {.as_char = c}};
+  // Copy bits
+  word bits = 0;
+  memcpy(&bits, &c, sizeof(c));
+  // Reserve space for tag
+  bits <<= BITS_CHARACTER;
+  return (data_t *)TAG(bits, MASK_CHARACTER, TAG_CHARACTER);
 }
 
-data_t data_int(i64 i)
+data_t *data_float(float f)
 {
-  return (data_t){.type = DATA_INT, .payload = {.as_int = i}};
+  word bits = 0;
+  memcpy(&bits, &f, sizeof(f));
+  bits <<= BITS_FLOAT;
+  return (data_t *)TAG(bits, MASK_FLOAT, TAG_FLOAT);
 }
 
-data_t data_uint(u64 u)
+data_t *data_int(i64 i)
 {
-  return (data_t){.type = DATA_UINT, .payload = {.as_uint = u}};
+  assert(i <= INT60_MAX && i >= INT60_MIN && "data_int: i is not 60 bits");
+  return (data_t *)TAG(i << BITS_INT, MASK_INT, TAG_INT);
 }
 
-data_t data_double(double d)
+data_t *data_uint(u64 u)
 {
-  return (data_t){.type = DATA_DOUBLE, .payload = {.as_double = d}};
+  assert(u <= UINT60_MAX && "data_uint: u is not 60 bits");
+  return (data_t *)TAG(u << BITS_UINT, MASK_UINT, TAG_UINT);
 }
 
-size_t data_write(data_t datum, byte *bytes)
+bool data_as_bool(data_t *d)
 {
-  if (!bytes)
+  return ((word)d) >> BITS_BOOLEAN;
+}
+
+char data_as_char(data_t *d)
+{
+  return ((word)d) >> BITS_CHARACTER;
+}
+
+float data_as_float(data_t *d)
+{
+  return ((word)d) >> BITS_FLOAT;
+}
+
+i64 data_as_int(data_t *d)
+{
+  return (((i64)d) >> BITS_INT);
+}
+
+u64 data_as_uint(data_t *d)
+{
+  return (((word)d) >> BITS_UINT);
+}
+
+data_type_t data_type(data_t *d)
+{
+  if (TAGGED((word)d, MASK_NIL, TAG_NIL))
+    return DATA_NIL;
+  else if (TAGGED((word)d, MASK_BOOLEAN, TAG_BOOLEAN))
+    return DATA_BOOLEAN;
+  else if (TAGGED((word)d, MASK_CHARACTER, TAG_CHARACTER))
+    return DATA_CHARACTER;
+  else if (TAGGED((word)d, MASK_INT, TAG_INT))
+    return DATA_INT;
+  else if (TAGGED((word)d, MASK_UINT, TAG_UINT))
+    return DATA_UINT;
+  else if (TAGGED((word)d, MASK_FLOAT, TAG_FLOAT))
+    return DATA_FLOAT;
+  assert(false && "data_type: d is not tagged?!");
+  return DATA_NIL;
+}
+
+void data_numerics_promote_on_float(data_t **a, data_type_t *type_a, data_t **b,
+                                    data_type_t *type_b)
+{
+  // If neither are numerics then stop
+  if (!(data_type_is_numeric(*type_a) && data_type_is_numeric(*type_b)))
+    return;
+
+  data_t **ptr      = NULL;
+  data_type_t *type = NULL;
+  if (*type_a == DATA_FLOAT)
   {
-    // Return bytes written if datum was written
-    switch (datum.type)
-    {
-    case DATA_NIL:
-    case DATA_BOOLEAN:
-    case DATA_CHARACTER:
-      return 2;
-    case DATA_INT:
-    case DATA_UINT:
-    case DATA_DOUBLE:
-      return 9;
-    case NUMBER_OF_DATATYPES:
-    default:
-      return 0;
-    }
+    ptr  = b;
+    type = type_b;
   }
-  bytes[0] = datum.type;
-  switch (datum.type)
+  else if (*type_b == DATA_FLOAT)
+  {
+    ptr  = a;
+    type = type_a;
+  }
+  else
+    return;
+  *ptr  = data_numeric_cast(*ptr, DATA_FLOAT);
+  *type = DATA_FLOAT;
+}
+
+void data_print(data_t *d, FILE *fp)
+{
+  data_type_t type = data_type(d);
+  switch (type)
   {
   case DATA_NIL:
-    bytes[1] = 0;
-    return 2;
+    fprintf(fp, "NIL");
     break;
   case DATA_BOOLEAN:
+#if VERBOSE == 1
+    fprintf(fp, "bool(%s)", data_as_bool(d) ? "True" : "False");
+#else
+    fprintf(fp, "%s", data_as_bool(d) ? "True" : "False");
+#endif
+    break;
   case DATA_CHARACTER:
-    bytes[1] = datum.payload.as_char;
-    return 2;
+#if VERBOSE == 1
+    fprintf(fp, "char('%c')", data_as_char(d));
+#else
+    fprintf(fp, "%c", data_as_char(d));
+#endif
     break;
   case DATA_INT:
-  case DATA_UINT:
-  case DATA_DOUBLE:
-#if IS_BIG_ENDIAN
-    for (size_t i = 1, shift = 56; i < 9; ++i, shift -= 8)
-      bytes[i] = ((datum.payload.as_uint >> shift) & 0xff);
+#if VERBOSE == 1
+    fprintf(fp, "int(%" PRId64 ")", data_as_int(d));
 #else
-    for (size_t i = 1, shift = 0; i < 9; ++i, shift += 8)
-      bytes[i] = ((datum.payload.as_uint >> shift) & 0xff);
+    fprintf(fp, "%" PRId64, data_as_int(d));
 #endif
-    return 9;
     break;
+  case DATA_UINT:
+#if VERBOSE == 1
+    fprintf(fp, "uint(%" PRIu64 ")", data_as_uint(d));
+#else
+    fprintf(fp, "%" PRIu64 "", data_as_uint(d));
+#endif
+    break;
+  case DATA_FLOAT:
+#if VERBOSE == 1
+    fprintf(fp, "float(%f)", data_as_float(d));
+#else
+    fprintf(fp, "%f", data_as_float(d));
+#endif
+    break;
+  case NUMBER_OF_DATATYPES:
+  default:
+    fprintf(fp, "<UNKNOWN:%" PRIu64 ">", (word)d);
+    break;
+  }
+}
+
+bool data_type_is_numeric(data_type_t t)
+{
+  return t >= DATA_INT && t < NUMBER_OF_DATATYPES;
+}
+
+data_t *data_numeric_cast(data_t *d, data_type_t t)
+{
+  data_type_t type = data_type(d);
+  if (t < DATA_INT || type < DATA_INT)
+    return data_nil();
+  else if (type == t)
+    return d;
+
+  // TODO: Make this better?
+  if (t == DATA_INT)
+  {
+    // d must be either uint or float
+    if (type == DATA_UINT)
+    {
+      u64 u = data_as_uint(d);
+      if (u > INT64_MAX)
+        return data_nil();
+      else
+        return data_int(u);
+    }
+    else if (type == DATA_FLOAT)
+      // Must truncate :(
+      return data_int(data_as_float(d));
+  }
+  else if (t == DATA_UINT)
+  {
+    // d must be either an int or float
+    if (type == DATA_INT)
+      return data_uint(data_as_int(d));
+    else if (type == DATA_FLOAT)
+      // Must truncate :(
+      return data_uint(data_as_float(d));
+  }
+  else if (t == DATA_FLOAT)
+  {
+    // d must be either an int or uint, both will truncate :(
+    if (type == DATA_INT)
+      return data_float(data_as_int(d));
+    else if (type == DATA_UINT)
+      // Must truncate :(
+      return data_float(data_as_uint(d));
+  }
+  // Should never happen
+  assert(false && "data_numeric_cast: Supposedly unreachable case occured!");
+  return data_nil();
+}
+
+size_t data_type_bytecode_size(data_type_t type)
+{
+  switch (type)
+  {
+  case DATA_NIL:
+    return 1;
+  case DATA_BOOLEAN:
+  case DATA_CHARACTER:
+    return 2;
+  case DATA_FLOAT:
+    return sizeof(float) + 1;
+  case DATA_INT:
+  case DATA_UINT:
+    return sizeof(i64) + 1;
   case NUMBER_OF_DATATYPES:
   default:
     return 0;
   }
 }
 
-void data_print(data_t d)
+size_t data_write(data_t *d, byte *bytes)
 {
-  switch (d.type)
+  data_type_t type = data_type(d);
+  bytes[0]         = type;
+  switch (type)
   {
   case DATA_NIL:
-    printf("NIL");
-    break;
+    // Just one byte for "being a nil"
+    return 1;
   case DATA_BOOLEAN:
-    printf("%s", d.payload.as_bool ? "True" : "False");
-    break;
+    bytes[1] = data_as_bool(d);
+    return 2;
   case DATA_CHARACTER:
-    printf("`%c`", d.payload.as_char);
-    break;
-  case DATA_INT:
-    printf("%" PRId64 "d", d.payload.as_int);
-    break;
-  case DATA_UINT:
-    printf("%" PRIu64 "u", d.payload.as_uint);
-    break;
-  case DATA_DOUBLE:
-    printf("%ff", d.payload.as_double);
-    break;
-  case NUMBER_OF_DATATYPES:
-  default:
-    return;
-  }
-}
-
-uint64_t read_u64_from_bytes(byte *bytes)
-{
-  u64 acc = 0;
-#if IS_BIG_ENDIAN
-  for (size_t i = 0, shift = 56; i < 8; ++i, shift -= 8)
-    acc += (((u64)bytes[i]) << shift);
-#else
-  for (size_t i = 0, shift = 0; i < 8; ++i, shift += 8)
-    acc += (((u64)bytes[i]) << shift);
-#endif
-  return acc;
-}
-
-data_t data_read(data_type_t tag, byte *bytes)
-{
-  switch (tag)
-  {
-  case DATA_NIL:
-    return data_nil();
-  case DATA_BOOLEAN:
-    return data_bool(bytes[1]);
-  case DATA_CHARACTER:
-    return data_char(bytes[1]);
-  case DATA_UINT: {
-    u64 u = read_u64_from_bytes(bytes);
-    return data_uint(u);
+    bytes[1] = data_as_char(d);
+    return 2;
+  case DATA_FLOAT: {
+    float f = data_as_float(d);
+    memcpy(bytes + 1, &f, sizeof(f));
+    return sizeof(f) + 1;
   }
   case DATA_INT: {
-    u64 u = read_u64_from_bytes(bytes);
-    i64 i = 0;
-    memcpy(&i, &u, sizeof(i));
-    return data_int(i);
+    i64 i = data_as_int(d);
+    memcpy(bytes + 1, &i, sizeof(i));
+    return sizeof(i) + 1;
   }
-  case DATA_DOUBLE: {
-    u64 u    = read_u64_from_bytes(bytes);
-    double d = 0;
-    memcpy(&d, &u, sizeof(d));
-    return data_double(d);
+  case DATA_UINT: {
+    u64 i = data_as_uint(d);
+    memcpy(bytes + 1, &i, sizeof(i));
+    return sizeof(i) + 1;
   }
   case NUMBER_OF_DATATYPES:
   default:
-    return data_nil();
+    assert(false && "data_write: Type of data is not valid");
+    return 0;
   }
 }
 
-static_assert(DATA_DOUBLE - DATA_INT == 2,
-              "data_numeric_cast: Doesn't cover all numeric types");
-
-data_t data_numeric_cast(data_t d, data_type_t t)
+data_t *data_read(data_type_t type, byte *bytes)
 {
-  if (d.type < DATA_INT || t < DATA_INT)
+  switch (type)
+  {
+  case DATA_NIL:
+    // Don't need to read that really lol
     return data_nil();
-
-  if (t == DATA_INT)
-  {
-    if (d.type == DATA_INT || d.type == DATA_UINT)
-      return data_int(d.payload.as_int);
-    else
-      return data_int((i64)d.payload.as_double);
+  case DATA_BOOLEAN:
+    return data_bool(bytes[0]);
+  case DATA_CHARACTER:
+    return data_char(bytes[0]);
+  case DATA_FLOAT: {
+    float f = 0;
+    memcpy(&f, bytes, sizeof(f));
+    return data_float(f);
   }
-  else if (t == DATA_UINT)
-  {
-    if (d.type == DATA_INT || d.type == DATA_UINT)
-      return data_uint(d.payload.as_uint);
-    else
-      return data_uint((u64)d.payload.as_double);
+  case DATA_INT: {
+    i64 i = 0;
+    memcpy(&i, bytes, sizeof(i));
+    return data_int(i);
   }
-  else if (t == DATA_DOUBLE)
-  {
-    if (d.type == DATA_INT)
-      return data_double((double)d.payload.as_int);
-    else if (d.type == DATA_UINT)
-      return data_double((double)d.payload.as_uint);
-    else
-      return d;
+  case DATA_UINT: {
+    u64 u = 0;
+    memcpy(&u, bytes, sizeof(u));
+    return data_uint(u);
   }
-
-  return data_nil();
+  case NUMBER_OF_DATATYPES:
+  default:
+    // unreachable
+    assert(false && "data_read: Type is not valid");
+    return data_nil();
+  }
 }
