@@ -172,7 +172,31 @@ void vm_copy_program(vm_t *vm, op_t *ops, size_t size_ops)
 
 void vm_write_program(vm_t *vm, FILE *fp)
 {
-  fwrite(vm->program, sizeof(vm->program[0]), vm->size_program, fp);
+  darr_t bytes = {0};
+  darr_init(&bytes, 1, sizeof(byte));
+  for (size_t i = 0; i < vm->size_program; ++i)
+  {
+    data_type_t type = data_type(vm->program[i].operand);
+    size_t size      = data_type_bytecode_size(type);
+    byte bytecode[size + 1];
+
+#if DEBUG == 1
+    printf("[INFO]: Assembling `");
+    op_print(vm->program[i], stdout);
+    puts("`");
+#endif
+
+    bytecode[0] = vm->program[i].opcode;
+    data_write(vm->program[i].operand, bytecode + 1);
+
+#if DEBUG == 1
+    printf("[INFO]: Assembled %lu bytes\n", size + 1);
+#endif
+
+    darr_mem_append(&bytes, (byte *)bytecode, size + 1);
+  }
+  fwrite(bytes.data, sizeof(byte), bytes.used, fp);
+  darr_free(&bytes);
 }
 
 void vm_read_program(vm_t *vm, FILE *fp)
