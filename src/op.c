@@ -17,19 +17,25 @@ void op_print(op_t op, FILE *fp)
     fprintf(fp, "OP_HALT");
     break;
   case OP_PUSH:
-    fprintf(fp, "OP_PUSH(%" PRId64 ")", op.operand);
+    fprintf(fp, "OP_PUSH(");
+    data_print(op.operand, fp);
+    fprintf(fp, ")");
     break;
   case OP_PLUS:
     fprintf(fp, "OP_PLUS");
     break;
   case OP_DUP:
-    fprintf(fp, "OP_DUP(%" PRId64 ")", op.operand);
+    fprintf(fp, "OP_DUP(");
+    data_print(op.operand, fp);
+    fprintf(fp, ")");
     break;
   case OP_PRINT:
     fprintf(fp, "OP_PRINT");
     break;
   case OP_JUMP:
-    fprintf(fp, "OP_JUMP(%" PRId64 ")", op.operand);
+    fprintf(fp, "OP_JUMP(");
+    data_print(op.operand, fp);
+    fprintf(fp, ")");
     break;
   case NUMBER_OF_OPERATORS:
     fputs("", fp);

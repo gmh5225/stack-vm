@@ -1,6 +1,7 @@
 #ifndef OP_H
 #define OP_H
 
+#include "./data.h"
 #include "./lib.h"
 
 #include <stdio.h>
@@ -20,7 +21,7 @@ typedef enum OPCODE
 typedef struct
 {
   inst_t opcode;
-  i64 operand;
+  data_t *operand;
 } op_t;
 
 #define OP_CREATE_HALT    ((op_t){.opcode = OP_HALT, .operand = 0})
