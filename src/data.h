@@ -58,11 +58,9 @@ typedef struct Data data_t;
 #define INT60_MIN  (-(1LL << 60))
 
 data_t *data_nil(void);
-// Smaller than word size
 data_t *data_bool(bool b);
 data_t *data_char(char c);
 data_t *data_float(float f);
-// Equal to word size
 data_t *data_int(i64 i);
 data_t *data_uint(u64 u);
 

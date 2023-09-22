@@ -19,8 +19,8 @@ data_t *data_bool(bool b)
   // Copy bits
   word w = b;
   // Reserve space for tag
-  w <<= 3;
-  return (data_t *)TAG((word)b, MASK_BOOLEAN, TAG_BOOLEAN);
+  w <<= MASK_BOOLEAN;
+  return (data_t *)TAG((word)w, MASK_BOOLEAN, TAG_BOOLEAN);
 }
 
 data_t *data_char(char c)
@@ -29,7 +29,7 @@ data_t *data_char(char c)
   word bits = 0;
   memcpy(&bits, &c, sizeof(c));
   // Reserve space for tag
-  bits <<= 3;
+  bits <<= MASK_CHARACTER;
   return (data_t *)TAG(bits, MASK_CHARACTER, TAG_CHARACTER);
 }
 
@@ -37,7 +37,7 @@ data_t *data_float(float f)
 {
   word bits = 0;
   memcpy(&bits, &f, sizeof(f));
-  bits <<= 3;
+  bits <<= MASK_FLOAT;
   return (data_t *)TAG(bits, MASK_FLOAT, TAG_FLOAT);
 }
 
