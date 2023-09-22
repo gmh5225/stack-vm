@@ -44,7 +44,7 @@ typedef struct
   {
     op_t immediate;
     char *label_name;
-    i64 relative_jump_operand;
+    data_t *relative_jump_operand;
   };
 } pres_t;
 

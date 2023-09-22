@@ -235,7 +235,8 @@ perr_t process_presults(pres_t *results, size_t results_size, buffer_t *buffer,
     else if (res.type == PRES_JUMP_RELATIVE)
     {
       // Get absolute program address
-      i64 abs_addr = program_size + res.relative_jump_operand;
+      i64 addr     = data_as_int(res.relative_jump_operand);
+      i64 abs_addr = program_size + addr;
       if (abs_addr < 0)
       {
         darr_free(&labels);
@@ -243,7 +244,7 @@ perr_t process_presults(pres_t *results, size_t results_size, buffer_t *buffer,
       }
       (results + i)->type              = PRES_IMMEDIATE;
       (results + i)->immediate.opcode  = OP_JUMP;
-      (results + i)->immediate.operand = abs_addr;
+      (results + i)->immediate.operand = data_int(abs_addr);
       // Then register in program
       ++program_size;
     }
