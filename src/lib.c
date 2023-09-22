@@ -16,15 +16,14 @@ buffer_t buffer_read_file(const char *name, FILE *fp)
   long size = ftell(fp);
   fseek(fp, 0, SEEK_SET);
 
-  buffer_t buffer  = {0};
-  size_t data_size = sizeof(buffer.data[0]);
+  buffer_t buffer = {0};
 
   buffer.name      = name;
-  buffer.data      = calloc(size + 1, data_size);
+  buffer.data      = calloc(size + 1, 1);
   buffer.available = size;
   buffer.cur       = 0;
 
-  fread(buffer.data, data_size, size / data_size, fp);
+  fread(buffer.data, 1, size, fp);
 
   buffer.data[size] = '\0';
 
@@ -33,14 +32,16 @@ buffer_t buffer_read_file(const char *name, FILE *fp)
 
 buffer_t buffer_read_cstr(const char *name, const char *str, size_t size)
 {
-  buffer_t buffer  = {0};
-  size_t data_size = sizeof(buffer.data[0]);
+  buffer_t buffer = {0};
+
   buffer.name      = name;
-  buffer.data      = calloc(size, data_size + 1);
+  buffer.data      = calloc(size + 1, 1);
   buffer.available = size;
   buffer.cur       = 0;
-  memcpy(buffer.data, str, data_size * size);
-  buffer.data[data_size * size] = '\0';
+
+  memcpy(buffer.data, str, size);
+  buffer.data[size] = '\0';
+
   return buffer;
 }
 
