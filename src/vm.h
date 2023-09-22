@@ -24,6 +24,6 @@ err_t vm_execute_all(vm_t *vm);
 
 void vm_copy_program(vm_t *vm, op_t *ops, size_t size_ops);
 void vm_write_program(vm_t *vm, FILE *fp);
-err_t vm_read_program(vm_t *vm, FILE *fp);
+err_t vm_read_program(vm_t *vm, buffer_t *buffer);
 
 #endif

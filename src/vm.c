@@ -208,22 +208,14 @@ void vm_write_program(vm_t *vm, FILE *fp)
   darr_free(&bytes);
 }
 
-err_t vm_read_program(vm_t *vm, FILE *fp)
+err_t vm_read_program(vm_t *vm, buffer_t *buffer)
 {
-  fseek(fp, 0, SEEK_END);
-  long size = ftell(fp);
-  fseek(fp, 0, SEEK_SET);
-
-  byte bytes[size];
-  for (size_t i = 0; i < (size_t)size; ++i)
-    fread(bytes + i, sizeof(byte), 1, fp);
-
   size_t j = 0;
-  for (size_t i = 0; i < (size_t)size && j < VM_PROGRAM_MAX; ++i)
+  while (j < VM_PROGRAM_MAX && buffer_at_end(*buffer) != BUFFER_PAST_END)
   {
     size_t offset = 0;
     // first byte is an opcode
-    inst_t opcode = bytes[i];
+    inst_t opcode = buffer_pop(buffer);
     switch (opcode)
     {
     case OP_NONE: {
@@ -238,13 +230,17 @@ err_t vm_read_program(vm_t *vm, FILE *fp)
     }
     case OP_PUSH: {
       vm->program[j].opcode = OP_PUSH;
-      byte tag              = bytes[++i];
+      if (buffer_at_end(*buffer))
+        return ERR_BYTECODE_EOF;
+      byte tag = buffer_pop(buffer);
+      offset   = data_type_bytecode_size(DATA_INT);
       if (tag != DATA_INT)
         return ERR_ILLEGAL_TYPE;
-      ++i;
-      offset                   = data_type_bytecode_size(DATA_INT);
-      vm->program[j++].operand = data_read(DATA_INT, bytes + i);
-      i += offset - 2;
+      else if (buffer_at_end(*buffer) || buffer_space_left(*buffer) < offset)
+        return ERR_BYTECODE_EOF;
+      vm->program[j++].operand =
+          data_read(DATA_INT, ((byte *)buffer->data) + buffer->cur);
+      buffer->cur += offset - 2;
       break;
     }
     case OP_PLUS: {
@@ -254,13 +250,17 @@ err_t vm_read_program(vm_t *vm, FILE *fp)
     }
     case OP_DUP: {
       vm->program[j].opcode = OP_DUP;
-      byte tag              = bytes[++i];
+      if (buffer_at_end(*buffer))
+        return ERR_BYTECODE_EOF;
+      byte tag = buffer_pop(buffer);
+      offset   = data_type_bytecode_size(DATA_UINT);
       if (tag != DATA_UINT)
         return ERR_ILLEGAL_TYPE;
-      ++i;
-      offset                   = data_type_bytecode_size(DATA_UINT);
-      vm->program[j++].operand = data_read(DATA_UINT, bytes + i);
-      i += offset - 2;
+      else if (buffer_at_end(*buffer) || buffer_space_left(*buffer) < offset)
+        return ERR_BYTECODE_EOF;
+      vm->program[j++].operand =
+          data_read(DATA_UINT, ((byte *)buffer->data) + buffer->cur);
+      buffer->cur += offset - 2;
       break;
     }
     case OP_PRINT: {
@@ -270,13 +270,17 @@ err_t vm_read_program(vm_t *vm, FILE *fp)
     }
     case OP_JUMP: {
       vm->program[j].opcode = OP_JUMP;
-      byte tag              = bytes[++i];
+      byte tag              = buffer_pop(buffer);
+      offset                = data_type_bytecode_size(DATA_UINT);
+
       if (tag != DATA_UINT)
         return ERR_ILLEGAL_TYPE;
-      ++i;
-      offset                   = data_type_bytecode_size(DATA_UINT);
-      vm->program[j++].operand = data_read(DATA_UINT, bytes + i);
-      i += offset - 2;
+      else if (buffer_at_end(*buffer) || buffer_space_left(*buffer) < offset)
+        return ERR_BYTECODE_EOF;
+
+      vm->program[j++].operand =
+          data_read(DATA_UINT, ((byte *)buffer->data) + buffer->cur);
+      buffer->cur += offset - 2;
       break;
     }
     case NUMBER_OF_OPERATORS:
