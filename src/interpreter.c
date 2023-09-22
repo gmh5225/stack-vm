@@ -34,8 +34,9 @@ int main(int argc, char *argv[])
   FILE *fp              = fopen(file_name, "rb");
   if (!fp)
   {
-    fprintf(stderr, "[ERROR]: Could not read file `%s`: %s\n", file_name,
-            strerror(errno));
+    fprintf(stderr,
+            "[" TERM_RED "ERROR" TERM_RESET "]: Could not read file `%s`: %s\n",
+            file_name, strerror(errno));
     usage(stderr);
     return 1;
   }
@@ -45,15 +46,18 @@ int main(int argc, char *argv[])
 
   if (err_read != ERR_OK)
   {
-    fprintf(stderr, "[ERROR]: %s (in reading `%s`)\n", err_as_cstr(err_read),
-            file_name);
+    fprintf(stderr, "[" TERM_RED "ERROR" TERM_RESET "]: %s (in reading `%s`)\n",
+            err_as_cstr(err_read), file_name);
     return -1;
   }
 
   err_t err_exec = vm_execute_all(&vm);
   if (err_exec != ERR_OK)
   {
-    fprintf(stderr, "[ERROR]: %s\n[ERROR]: Trace:\n", err_as_cstr(err_exec));
+    fprintf(stderr,
+            "[" TERM_RED "ERROR" TERM_RESET "]: %s\n[" TERM_RED
+            "ERROR" TERM_RESET "]: Trace:\n",
+            err_as_cstr(err_exec));
     vm_print_all(&vm, stderr);
     return -1;
   }

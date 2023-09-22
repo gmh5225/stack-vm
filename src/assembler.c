@@ -40,8 +40,9 @@ int main(int argc, char *argv[])
   FILE *fp = fopen(in_name, "rb");
   if (!fp)
   {
-    fprintf(stderr, "[ERROR]: Could not read file `%s`: %s\n", in_name,
-            strerror(errno));
+    fprintf(stderr,
+            "[" TERM_RED "ERROR" TERM_RESET "]: Could not read file `%s`: %s\n",
+            in_name, strerror(errno));
     usage(stderr);
     ret = 1;
     goto error;
@@ -58,7 +59,7 @@ int main(int argc, char *argv[])
   if (err != PERR_OK)
   {
     char *reason = perr_generate(err, &buf);
-    fprintf(stderr, "%s\n", reason);
+    fprintf(stderr, "[" TERM_RED "ERROR" TERM_RESET "]: %s\n", reason);
     free(reason);
     usage(stderr);
     ret = 255 - err;
@@ -73,8 +74,9 @@ int main(int argc, char *argv[])
   fp = fopen(out_name, "wb");
   if (!fp)
   {
-    fprintf(stderr, "[ERROR]: Could not open file `%s`: %s\n", in_name,
-            strerror(errno));
+    fprintf(stderr,
+            "[" TERM_RED "ERROR" TERM_RESET "]: Could not open file `%s`: %s\n",
+            in_name, strerror(errno));
     usage(stderr);
     ret = 1;
     goto error;
@@ -83,7 +85,9 @@ int main(int argc, char *argv[])
   vm_write_program(&vm, fp);
   fclose(fp);
 
-  printf("[INFO]: Successfully compiled `%s`->`%s`\n", in_name, out_name);
+  printf("[" TERM_GREEN "INFO" TERM_RESET
+         "]: Successfully compiled `%s`->`%s`\n",
+         in_name, out_name);
 
   return 0;
 error:
