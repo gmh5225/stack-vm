@@ -26,6 +26,7 @@ typedef struct
   data_t *operand;
 } op_t;
 
+#define OP_CREATE_NOOP    ((op_t){.opcode = OP_NONE, .operand = data_nil()})
 #define OP_CREATE_HALT    ((op_t){.opcode = OP_HALT, .operand = data_nil()})
 #define OP_CREATE_PUSH(x) ((op_t){.opcode = OP_PUSH, .operand = x})
 #define OP_CREATE_PLUS    ((op_t){.opcode = OP_PLUS, .operand = data_nil()})
