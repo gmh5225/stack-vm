@@ -100,9 +100,9 @@ err_t vm_execute(vm_t *vm)
       i64 c = data_as_int(a);
       i64 d = data_as_int(b);
 
-      if (c > 0 && (d > (INT64_MAX - c)))
+      if (c > 0 && (d > (INT60_MAX - c)))
         return ERR_INTEGER_OVERFLOW;
-      else if (c < 0 && d < (INT64_MIN - c))
+      else if (c < 0 && d < (INT60_MIN - c))
         return ERR_INTEGER_UNDERFLOW;
       vm->stack[vm->sptr - 2] = data_int(c + d);
     }
