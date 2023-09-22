@@ -50,8 +50,9 @@ int main(int argc, char *argv[])
 
   if (err_read != ERR_OK)
   {
-    fprintf(stderr, "[" TERM_RED "ERROR" TERM_RESET "]: %s (in reading `%s`)\n",
-            err_as_cstr(err_read), file_name);
+    char *message = err_generate(err_read, &buffer);
+    fprintf(stderr, "%s (in reading `%s`)\n", message, file_name);
+    free(message);
     return -1;
   }
 
