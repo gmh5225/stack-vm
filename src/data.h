@@ -20,12 +20,12 @@ typedef enum DataType
 typedef enum
 {
   // The "immediate types"
-  TAG_INT       = 0x0, // 0b000
-  TAG_UINT      = 0x2, // 0b010
-  TAG_CHARACTER = 0x3, // 0b011
-  TAG_BOOLEAN   = 0x4, // 0b100
-  TAG_FLOAT     = 0x5, // 0b101
-  TAG_NIL       = 0x6, // 0b111
+  TAG_INT       = 0x0, // 0b0000
+  TAG_UINT      = 0x2, // 0b0010
+  TAG_CHARACTER = 0x4, // 0b0100
+  TAG_BOOLEAN   = 0x6, // 0b0110
+  TAG_FLOAT     = 0x8, // 0b1000
+  TAG_NIL       = 0xa, // 0b1010
 
   // Any "allocated" types
   // TODO: Create some allocated types
@@ -33,22 +33,22 @@ typedef enum
 
 typedef enum
 {
-  MASK_INT       = 7,
-  MASK_UINT      = 7,
-  MASK_CHARACTER = 7,
-  MASK_BOOLEAN   = 7,
-  MASK_NIL       = 7,
-  MASK_FLOAT     = 7,
+  MASK_INT       = 15,
+  MASK_UINT      = 15,
+  MASK_CHARACTER = 15,
+  MASK_BOOLEAN   = 15,
+  MASK_NIL       = 15,
+  MASK_FLOAT     = 15,
 } mask_t;
 
 typedef enum
 {
-  BITS_INT       = 3,
-  BITS_UINT      = 3,
-  BITS_CHARACTER = 3,
-  BITS_BOOLEAN   = 3,
-  BITS_NIL       = 3,
-  BITS_FLOAT     = 3,
+  BITS_INT       = 4,
+  BITS_UINT      = 4,
+  BITS_CHARACTER = 4,
+  BITS_BOOLEAN   = 4,
+  BITS_NIL       = 4,
+  BITS_FLOAT     = 4,
 } bits_t;
 
 // Type level separation of tagged bits
@@ -63,9 +63,9 @@ typedef struct Data data_t;
 
 // Bounds of a 60 bit (u)int
 // No sign bit => 60 bits of space
-#define UINT60_MAX ((1LU << 61) - 1)
-#define INT60_MAX  ((1LL << 60) - 1)
-#define INT60_MIN  (-(1LL << 60))
+#define UINT60_MAX ((1LU << 60) - 1)
+#define INT60_MAX  ((1LL << 59) - 1)
+#define INT60_MIN  (-(1LL << 59))
 
 /* Constructors */
 data_t *data_nil(void);
