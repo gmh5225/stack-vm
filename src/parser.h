@@ -48,7 +48,8 @@ typedef struct
   };
 } pres_t;
 
-perr_t parse_i64(buffer_t *buf, i64 *ret);
+perr_t parse_i64(buffer_t *buf, data_t **ret);
+perr_t parse_u64(buffer_t *buf, data_t **ret);
 
 perr_t parse_line(buffer_t *, pres_t *);
 perr_t process_presults(pres_t *, size_t, buffer_t *, darr_t *);

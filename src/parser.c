@@ -26,19 +26,42 @@ size_t get_size_i64(char *str, size_t max_size)
   return i; // EOF
 }
 
-perr_t parse_i64(buffer_t *buf, i64 *ret)
+perr_t parse_u64(buffer_t *buf, data_t **ret)
 {
   if (buffer_at_end(*buf) == BUFFER_PAST_END)
     return PERR_EOF;
-  perr_t err           = PERR_OK;
+  char *operand = buf->data + buf->cur;
+  if (operand[0] == '-')
+    return PERR_ILLEGAL_INST_ADDRESS;
+  size_t end_of_number = get_size_i64(operand, buf->available - buf->cur);
+  u64 number           = 0;
+  if (end_of_number != 0)
+  {
+    number = strtoull(operand, NULL, 10);
+    buf->cur += end_of_number;
+    *ret = data_uint(number);
+    return PERR_OK;
+  }
+  else
+    return PERR_EXPECTED_OPERAND; // catch all
+}
+
+perr_t parse_i64(buffer_t *buf, data_t **ret)
+{
+  if (buffer_at_end(*buf) == BUFFER_PAST_END)
+    return PERR_EOF;
   char *operand        = buf->data + buf->cur;
   size_t end_of_number = get_size_i64(operand, buf->available - buf->cur);
+  i64 number           = 0;
   if (end_of_number != 0)
-    *ret = atoll(operand);
+  {
+    number = atoll(operand);
+    buf->cur += end_of_number;
+    *ret = data_int(number);
+    return PERR_OK;
+  }
   else
-    err = PERR_EXPECTED_OPERAND; // catch all
-  buf->cur += end_of_number;
-  return err;
+    return PERR_EXPECTED_OPERAND; // catch all
 }
 
 perr_t parse_line(buffer_t *buf, pres_t *res)
