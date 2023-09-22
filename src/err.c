@@ -19,6 +19,8 @@ const char *err_as_cstr(err_t e)
   case ERR_STACK_UNDERFLOW:
     return "ERR_STACK_UNDERFLOW";
     break;
+  case ERR_BYTECODE_EOF:
+    return "ERR_BYTECODE_EOF";
   case ERR_ILLEGAL_JUMP:
     return "ERR_ILLEGAL_JUMP";
   case ERR_ILLEGAL_TYPE:
