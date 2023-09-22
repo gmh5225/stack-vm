@@ -113,7 +113,7 @@ perr_t parse_line(buffer_t *buf, pres_t *res)
     buffer_seek_next(buf);
     res->type             = PRES_IMMEDIATE;
     res->immediate.opcode = OP_DUP;
-    return parse_i64(buf, &res->immediate.operand);
+    return parse_u64(buf, &res->immediate.operand);
   }
   else if (memcmp(buf->data + buf->cur, "print", 5) == 0)
   {
@@ -161,7 +161,7 @@ perr_t parse_line(buffer_t *buf, pres_t *res)
     {
       res->type             = PRES_IMMEDIATE;
       res->immediate.opcode = OP_JUMP;
-      perr_t err            = parse_i64(buf, &res->immediate.operand);
+      perr_t err            = parse_u64(buf, &res->immediate.operand);
       if (err != PERR_OK)
         return err;
       else
@@ -273,7 +273,7 @@ perr_t process_presults(pres_t *results, size_t results_size, buffer_t *buffer,
         struct LabelPair pair = ((struct LabelPair *)labels.data)[j];
         if (complete_cmp_string(pair.name, res.label_name))
         {
-          op = OP_CREATE_JMP(pair.iptr);
+          op = OP_CREATE_JMP(data_uint(pair.iptr));
           break;
         }
       }
