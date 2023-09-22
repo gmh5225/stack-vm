@@ -41,6 +41,16 @@ typedef enum
   MASK_FLOAT     = 7,
 } mask_t;
 
+typedef enum
+{
+  BITS_INT       = 3,
+  BITS_UINT      = 3,
+  BITS_CHARACTER = 3,
+  BITS_BOOLEAN   = 3,
+  BITS_NIL       = 3,
+  BITS_FLOAT     = 3,
+} bits_t;
+
 // Type level separation of tagged bits
 struct Data;
 typedef struct Data data_t;
