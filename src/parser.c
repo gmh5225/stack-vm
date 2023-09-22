@@ -164,8 +164,7 @@ perr_t parse_line(buffer_t *buf, pres_t *res)
       perr_t err            = parse_u64(buf, &res->immediate.operand);
       if (err != PERR_OK)
         return err;
-      else
-        return PERR_OK;
+      return PERR_OK;
     }
 
     // Relative jump (medium)
@@ -198,8 +197,7 @@ perr_t parse_line(buffer_t *buf, pres_t *res)
 
     return PERR_OK;
   }
-  else
-    return PERR_ILLEGAL_OPERATOR;
+  return PERR_ILLEGAL_OPERATOR;
 NO_OPERAND:
   res->immediate.operand = data_nil();
   buffer_seek_next(buf);
