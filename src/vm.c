@@ -14,7 +14,7 @@ void vm_print_all(vm_t *vm, FILE *fp)
   fprintf(fp, "Program={\n");
   for (size_t i = 0; i < vm->size_program; ++i)
   {
-    fprintf(fp, "\t");
+    fprintf(fp, "  %lu: ", i);
     op_print(vm->program[i], fp);
     if (i == vm->iptr)
       fprintf(fp, "<--");
@@ -31,7 +31,7 @@ void vm_print_all(vm_t *vm, FILE *fp)
     fprintf(fp, "Stack={\n");
     for (i64 i = vm->sptr - 1; i >= 0; --i)
     {
-      fprintf(fp, "\t");
+      fprintf(fp, "  ");
       data_print(vm->stack[i], fp);
       fprintf(fp, "\n");
     }
