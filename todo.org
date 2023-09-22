@@ -4,44 +4,29 @@
 #+date: 2023-09-21
 
 
-* DONE [#A] Write a better bytecode assembler :BYTECODE:
-[[file:src/vm.c::void vm_write_program(vm_t *vm, FILE *fp)]]
-
-We need something a bit more robust, as sometimes bytes aren't
-correctly written into the binary buffer.  Also, while it looks clean,
-it isn't consistent.
-
-2023-09-19: If we implement the tagging scheme, then the assembler
-just needs to write a tag byte then the n bytes for the payload.  This
-works the other way for the interpreter: read the tag byte then slurp
-n bytes for the payload.
-
-A tagging scheme provides a method for using a uniform data type for
-multiple payloads.  The simplest is the tagged union: a byte for
-representing the type of data, and a variable number of bytes for the
-payload.
-** DONE Implement tagging scheme for the interpreter
-The interpreter needs to take bytecode and generate results.  While a
-tagged union would work here, we can be smarter using /pointer
-tagging/.
-
-Pointer tagging relies on the least significant bits of some pointer
-always being 0 due to word alignment.  On a 64 bit machine, that's the
-last 3 bits.  Instead of a tagged union, which at minimum requires 2
-words (one for the tag byte, one for payload) we can use one /word/ to
-store both.  It ensures we're passing words around only.
-
-A big problem with this is that we'll need to truncate immediate data
-types that are the same size as word: their 3 least significant bits
-/must/ be reserved for tagging.  So we can support 60 bit integers
-instead of 64 bits.  For larger integers we can rely on the heap.
-** DONE Implement tagging scheme for assembler
-The assembler needs to take source code and generate bytecode.  This
-can be pretty simple using the tagged union idea, but I want a uniform
-data type with the interpreter so let's use the pointer tagging here
-as well.
-** DONE Implement a tagging scheme module
 * TODO [#B] Write tests [0%] :TESTS:
+** TODO [0%] Write tests for pointer tagging
+*** TODO [0%] Tests for constructors
+**** TODO Test data_nil
+**** TODO Test data_bool
+**** TODO Test data_char
+**** TODO Test data_float
+**** TODO Test data_int
+**** TODO Test data_uint
+*** TODO [0%] Tests for destructors
+**** TODO Test data_as_bool
+**** TODO Test data_as_char
+**** TODO Test data_as_float
+**** TODO Test data_as_int
+**** TODO Test data_as_uint
+*** TODO Test data_print
+*** TODO Test data_type
+*** TODO Test data_type_is_numeric
+*** TODO Test data_numeric_cast
+*** TODO Test data_numerics_promote_on_float
+*** TODO Test data_type_bytecode_size
+*** TODO Test data_write
+*** TODO Test data_read
 ** TODO [75%] Write tests for parser
 [[file:tests/test-parser.c]]
 *** DONE Complete test_parse_line
@@ -86,3 +71,40 @@ pointers.
 *** DONE Rewrite parser for jump
 [[file:src/parser.c::else if (memcmp(buf->data + buf->cur, "jmp", 3)
 == 0)]]
+** DONE [#A] Write a better bytecode assembler :BYTECODE:
+[[file:src/vm.c::void vm_write_program(vm_t *vm, FILE *fp)]]
+
+We need something a bit more robust, as sometimes bytes aren't
+correctly written into the binary buffer.  Also, while it looks clean,
+it isn't consistent.
+
+2023-09-19: If we implement the tagging scheme, then the assembler
+just needs to write a tag byte then the n bytes for the payload.  This
+works the other way for the interpreter: read the tag byte then slurp
+n bytes for the payload.
+
+A tagging scheme provides a method for using a uniform data type for
+multiple payloads.  The simplest is the tagged union: a byte for
+representing the type of data, and a variable number of bytes for the
+payload.
+*** DONE Implement tagging scheme for the interpreter
+The interpreter needs to take bytecode and generate results.  While a
+tagged union would work here, we can be smarter using /pointer
+tagging/.
+
+Pointer tagging relies on the least significant bits of some pointer
+always being 0 due to word alignment.  On a 64 bit machine, that's the
+last 3 bits.  Instead of a tagged union, which at minimum requires 2
+words (one for the tag byte, one for payload) we can use one /word/ to
+store both.  It ensures we're passing words around only.
+
+A big problem with this is that we'll need to truncate immediate data
+types that are the same size as word: their 3 least significant bits
+/must/ be reserved for tagging.  So we can support 60 bit integers
+instead of 64 bits.  For larger integers we can rely on the heap.
+*** DONE Implement tagging scheme for assembler
+The assembler needs to take source code and generate bytecode.  This
+can be pretty simple using the tagged union idea, but I want a uniform
+data type with the interpreter so let's use the pointer tagging here
+as well.
+*** DONE Implement a tagging scheme module
