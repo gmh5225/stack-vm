@@ -5,8 +5,10 @@
  */
 
 #include "./data.h"
+#include "./lib.h"
 
 #include <assert.h>
+#include <float.h>
 #include <string.h>
 
 data_t *data_nil(void)
@@ -124,4 +126,51 @@ void data_print(data_t *d, FILE *fp)
     fprintf(fp, "<UNKNOWN_ADDRESS>:%" PRIu64 "\n", (word)d);
     break;
   }
+}
+
+data_t *data_numeric_cast(data_t *d, data_type_t t)
+{
+  data_type_t type = data_type(d);
+  if (t < DATA_INT || type < DATA_INT)
+    return data_nil();
+  else if (type == t)
+    return d;
+
+  // TODO: Make this better?
+  if (t == DATA_INT)
+  {
+    // d must be either uint or float
+    if (type == DATA_UINT)
+    {
+      u64 u = data_as_uint(d);
+      if (u > INT64_MAX)
+        return data_nil();
+      else
+        return data_int(u);
+    }
+    else if (type == DATA_FLOAT)
+      // Must truncate :(
+      return data_int(data_as_float(d));
+  }
+  else if (t == DATA_UINT)
+  {
+    // d must be either an int or float
+    if (type == DATA_INT)
+      return data_uint(data_as_int(d));
+    else if (type == DATA_FLOAT)
+      // Must truncate :(
+      return data_uint(data_as_float(d));
+  }
+  else if (t == DATA_FLOAT)
+  {
+    // d must be either an int or uint, both will truncate :(
+    if (type == DATA_INT)
+      return data_float(data_as_int(d));
+    else if (type == DATA_UINT)
+      // Must truncate :(
+      return data_float(data_as_uint(d));
+  }
+  // Should never happen
+  assert(false && "data_numeric_cast: Supposedly unreachable case occured!");
+  return data_nil();
 }
