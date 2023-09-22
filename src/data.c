@@ -117,6 +117,8 @@ void data_numerics_promote_on_float(data_t **a, data_type_t *type_a, data_t **b,
     ptr  = a;
     type = type_a;
   }
+  else
+    return;
   *ptr  = data_numeric_cast(*ptr, DATA_FLOAT);
   *type = DATA_FLOAT;
 }
