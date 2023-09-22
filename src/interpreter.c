@@ -39,12 +39,21 @@ int main(int argc, char *argv[])
     usage(stderr);
     return 1;
   }
-  vm_read_program(&vm, fp);
+
+  err_t err_read = vm_read_program(&vm, fp);
   fclose(fp);
-  err_t err = vm_execute_all(&vm);
-  if (err != ERR_OK)
+
+  if (err_read != ERR_OK)
   {
-    fprintf(stderr, "[ERROR]: %s\n[ERROR]: Trace:\n", err_as_cstr(err));
+    fprintf(stderr, "[ERROR]: %s (in reading `%s`)\n", err_as_cstr(err_read),
+            file_name);
+    return -1;
+  }
+
+  err_t err_exec = vm_execute_all(&vm);
+  if (err_exec != ERR_OK)
+  {
+    fprintf(stderr, "[ERROR]: %s\n[ERROR]: Trace:\n", err_as_cstr(err_exec));
     vm_print_all(&vm, stderr);
     return -1;
   }

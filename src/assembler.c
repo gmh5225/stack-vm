@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
   vm_write_program(&vm, fp);
   fclose(fp);
 
-  printf("[INFO]: Successfully compiled `%s`->`%s`", in_name, out_name);
+  printf("[INFO]: Successfully compiled `%s`->`%s`\n", in_name, out_name);
 
   return 0;
 error:
