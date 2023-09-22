@@ -91,8 +91,8 @@ size_t data_type_bytecode_size(data_type_t);
 size_t data_write(data_t *, byte *);
 
 // Read bytes as data with a certain type.  We assume you've asserted
-// that *actually have* enough bytes to do this operation (use
-// data_write with NULL to figure it out).
+// that the buffer *actually has* enough bytes to do this operation
+// (use data_type_bytecode_size to figure it out).
 data_t *data_read(data_type_t, byte *);
 
 #endif

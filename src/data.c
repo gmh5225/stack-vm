@@ -230,3 +230,37 @@ size_t data_write(data_t *d, byte *bytes)
     return 0;
   }
 }
+
+data_t *data_read(data_type_t type, byte *bytes)
+{
+  switch (type)
+  {
+  case DATA_NIL:
+    // Don't need to read that really lol
+    return data_nil();
+  case DATA_BOOLEAN:
+    return data_bool(bytes[0]);
+  case DATA_CHARACTER:
+    return data_char(bytes[0]);
+  case DATA_FLOAT: {
+    float f = 0;
+    memcpy(&f, bytes, sizeof(f));
+    return data_float(f);
+  }
+  case DATA_INT: {
+    i64 i = 0;
+    memcpy(&i, bytes, sizeof(i));
+    return data_int(i);
+  }
+  case DATA_UINT: {
+    u64 u = 0;
+    memcpy(&u, bytes, sizeof(u));
+    return data_uint(u);
+  }
+  case NUMBER_OF_DATATYPES:
+  default:
+    // unreachable
+    assert(false && "data_read: Type is not valid");
+    return data_nil();
+  }
+}
