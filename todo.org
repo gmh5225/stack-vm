@@ -4,7 +4,7 @@
 #+date: 2023-09-21
 
 
-* WIP [#A] Write a better bytecode assembler :BYTECODE:
+* DONE [#A] Write a better bytecode assembler :BYTECODE:
 [[file:src/vm.c::void vm_write_program(vm_t *vm, FILE *fp)]]
 
 We need something a bit more robust, as sometimes bytes aren't
@@ -20,7 +20,7 @@ A tagging scheme provides a method for using a uniform data type for
 multiple payloads.  The simplest is the tagged union: a byte for
 representing the type of data, and a variable number of bytes for the
 payload.
-** TODO Implement a tagging scheme for the interpreter
+** DONE Implement tagging scheme for the interpreter
 The interpreter needs to take bytecode and generate results.  While a
 tagged union would work here, we can be smarter using /pointer
 tagging/.
@@ -35,7 +35,7 @@ A big problem with this is that we'll need to truncate immediate data
 types that are the same size as word: their 3 least significant bits
 /must/ be reserved for tagging.  So we can support 60 bit integers
 instead of 64 bits.  For larger integers we can rely on the heap.
-** WIP Implement tagging scheme for assembler
+** DONE Implement tagging scheme for assembler
 The assembler needs to take source code and generate bytecode.  This
 can be pretty simple using the tagged union idea, but I want a uniform
 data type with the interpreter so let's use the pointer tagging here
