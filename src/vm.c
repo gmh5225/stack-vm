@@ -176,24 +176,33 @@ void vm_write_program(vm_t *vm, FILE *fp)
   darr_init(&bytes, 1, sizeof(byte));
   for (size_t i = 0; i < vm->size_program; ++i)
   {
-    data_type_t type = data_type(vm->program[i].operand);
-    size_t size      = data_type_bytecode_size(type);
-    byte bytecode[size + 1];
-
 #if DEBUG == 1
     printf("[INFO]: Assembling `");
     op_print(vm->program[i], stdout);
     puts("`");
 #endif
+    size_t size = 0;
+    if (vm->program[i].opcode >= OP_PUSH)
+    {
+      data_type_t type = data_type(vm->program[i].operand);
+      size             = data_type_bytecode_size(type) + 1;
+      byte bytecode[size];
 
-    bytecode[0] = vm->program[i].opcode;
-    data_write(vm->program[i].operand, bytecode + 1);
+      bytecode[0] = vm->program[i].opcode;
+      if (vm->program[i].opcode >= OP_PUSH)
+        data_write(vm->program[i].operand, bytecode + 1);
+
+      darr_mem_append(&bytes, (byte *)bytecode, size);
+    }
+    else
+    {
+      size = 1;
+      darr_mem_append(&bytes, &vm->program[i].opcode, 1);
+    }
 
 #if DEBUG == 1
     printf("[INFO]: Assembled %lu bytes\n", size + 1);
 #endif
-
-    darr_mem_append(&bytes, (byte *)bytecode, size + 1);
   }
   fwrite(bytes.data, sizeof(byte), bytes.used, fp);
   darr_free(&bytes);
