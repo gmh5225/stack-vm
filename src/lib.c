@@ -20,11 +20,13 @@ buffer_t buffer_read_file(const char *name, FILE *fp)
   size_t data_size = sizeof(buffer.data[0]);
 
   buffer.name      = name;
-  buffer.data      = calloc(size, data_size);
+  buffer.data      = calloc(size + 1, data_size);
   buffer.available = size;
   buffer.cur       = 0;
 
   fread(buffer.data, data_size, size / data_size, fp);
+
+  buffer.data[size] = '\0';
 
   return buffer;
 }
