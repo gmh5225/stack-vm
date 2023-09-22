@@ -56,7 +56,7 @@ struct Data;
 typedef struct Data data_t;
 
 // Macro to tag some bits using a mask
-#define TAG(BITS, MASK, TAG) ((BITS) & ~(MASK) | (TAG))
+#define TAG(BITS, MASK, TAG) (((BITS) & ~(MASK)) | (TAG))
 
 // Macro to check if some set of bits are tagged
 #define TAGGED(BITS, MASK, TAG) (((BITS) & (MASK)) == (TAG))
