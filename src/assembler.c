@@ -14,23 +14,42 @@
 
 void usage(FILE *fp)
 {
-  fputs("./assembler.out [FILE] [OUTPUT]\n"
+  fputs("./assembler.out [FILE] [OUTPUT]?\n"
         "\tAssemble FILE into bytecode, stored at OUTPUT\n"
         "\tFILE: File name for assembly code\n"
-        "\tOUTPUT: File name for bytecode storage (will be overwritten)\n",
+        "\tOUTPUT: Optional file name for bytecode storage (will be "
+        "overwritten)\n",
         fp);
+}
+
+void gen_output_filename(const char *name, size_t name_size, char *buffer)
+{
+  memcpy(buffer, name, name_size + 1);
+  char *ext = strstr(buffer, ".asm");
+  memcpy(ext, ".out", 4);
 }
 
 int main(int argc, char *argv[])
 {
-  if (argc < 3)
+  if (argc < 2)
   {
     usage(stderr);
     return 0;
   }
 
-  const char *in_name  = argv[1];
-  const char *out_name = argv[2];
+  bool generated_output = false;
+  const char *in_name   = argv[1];
+  char *out_name        = NULL;
+
+  if (argc > 2)
+    out_name = argv[2];
+  else
+  {
+    generated_output = true;
+    size_t name_size = strlen(in_name);
+    out_name         = calloc(name_size + 1, sizeof(*out_name));
+    gen_output_filename(in_name, name_size, out_name);
+  }
 
   int ret            = 0;
   buffer_t buf       = {0};
@@ -89,11 +108,16 @@ int main(int argc, char *argv[])
          "]: Successfully compiled `%s`->`%s`\n",
          in_name, out_name);
 
+  if (generated_output)
+    free(out_name);
+
   return 0;
 error:
   if (buf.data)
     free(buf.data);
   if (instructions)
     free(instructions);
+  if (generated_output)
+    free(out_name);
   return ret;
 }
