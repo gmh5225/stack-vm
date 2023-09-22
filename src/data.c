@@ -130,19 +130,39 @@ void data_print(data_t *d, FILE *fp)
     fprintf(fp, "NIL");
     break;
   case DATA_BOOLEAN:
+#if VERBOSE == 1
     fprintf(fp, "bool(%s)", data_as_bool(d) ? "True" : "False");
+#else
+    fprintf(fp, "%s", data_as_bool(d) ? "True" : "False");
+#endif
     break;
   case DATA_CHARACTER:
-    fprintf(fp, "char(%c)", data_as_char(d));
+#if VERBOSE == 1
+    fprintf(fp, "char('%c')", data_as_char(d));
+#else
+    fprintf(fp, "%c", data_as_char(d));
+#endif
     break;
   case DATA_INT:
+#if VERBOSE == 1
     fprintf(fp, "int(%" PRId64 ")", data_as_int(d));
+#else
+    fprintf(fp, "%" PRId64, data_as_int(d));
+#endif
     break;
   case DATA_UINT:
+#if VERBOSE == 1
     fprintf(fp, "uint(%" PRIu64 ")", data_as_uint(d));
+#else
+    fprintf(fp, "%" PRIu64 "", data_as_uint(d));
+#endif
     break;
   case DATA_FLOAT:
+#if VERBOSE == 1
     fprintf(fp, "float(%f)", data_as_float(d));
+#else
+    fprintf(fp, "%f", data_as_float(d));
+#endif
     break;
   case NUMBER_OF_DATATYPES:
   default:

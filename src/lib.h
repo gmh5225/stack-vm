@@ -7,7 +7,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define DEBUG 0
+#define DEBUG   0
+#define VERBOSE 0
 
 #define TERM_RED   "\x1b[31m"
 #define TERM_GREEN "\x1b[32m"

@@ -176,7 +176,7 @@ void vm_write_program(vm_t *vm, FILE *fp)
   darr_init(&bytes, 1, sizeof(byte));
   for (size_t i = 0; i < vm->size_program; ++i)
   {
-#if DEBUG == 1
+#if VERBOSE == 1
     printf("[INFO]: Assembling `");
     op_print(vm->program[i], stdout);
     puts("`");
@@ -200,7 +200,7 @@ void vm_write_program(vm_t *vm, FILE *fp)
       darr_mem_append(&bytes, &vm->program[i].opcode, 1);
     }
 
-#if DEBUG == 1
+#if VERBOSE == 1
     printf("[INFO]: Assembled %lu bytes\n", size + 1);
 #endif
   }
@@ -284,7 +284,7 @@ err_t vm_read_program(vm_t *vm, FILE *fp)
       return ERR_ILLEGAL_INSTRUCTION;
     }
 
-#if DEBUG == 1
+#if VERBOSE == 1
     printf("[INFO]: Read instruction `");
     op_print(vm->program[j - 1], stdout);
     printf("` from file\n");
