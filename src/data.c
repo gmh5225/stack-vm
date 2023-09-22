@@ -53,6 +53,31 @@ data_t *data_uint(u64 u)
   return (data_t *)TAG(u << BITS_UINT, MASK_UINT, TAG_UINT);
 }
 
+bool data_as_bool(data_t *d)
+{
+  return ((word)d) >> BITS_BOOLEAN;
+}
+
+char data_as_char(data_t *d)
+{
+  return ((word)d) >> BITS_CHARACTER;
+}
+
+float data_as_float(data_t *d)
+{
+  return ((word)d) >> BITS_FLOAT;
+}
+
+i64 data_as_int(data_t *d)
+{
+  return (((i64)d) >> BITS_INT);
+}
+
+u64 data_as_uint(data_t *d)
+{
+  return (((word)d) >> BITS_UINT);
+}
+
 data_type_t data_type(data_t *d)
 {
   if (TAGGED((word)d, MASK_NIL, TAG_NIL))

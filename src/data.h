@@ -74,7 +74,13 @@ data_t *data_float(float f);
 data_t *data_int(i64 i);
 data_t *data_uint(u64 u);
 
-void data_print(data_t *);
+bool data_as_bool(data_t *);
+char data_as_char(data_t *);
+float data_as_float(data_t *);
+i64 data_as_int(data_t *);
+u64 data_as_uint(data_t *);
+
+void data_print(data_t *, FILE *);
 
 data_type_t data_type(data_t *);
 data_t *data_numeric_cast(data_t *, data_type_t);
