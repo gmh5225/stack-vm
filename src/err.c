@@ -6,6 +6,8 @@
 
 #include "./err.h"
 
+#include <string.h>
+
 const char *err_as_cstr(err_t e)
 {
   switch (e)
@@ -39,4 +41,15 @@ const char *err_as_cstr(err_t e)
     return "";
     break;
   }
+}
+
+char *err_generate(err_t err, buffer_t *buffer)
+{
+  const char *err_cstr = err_as_cstr(err);
+  int char_num_size    = snprintf(NULL, 0, "%zu", buffer->cur);
+  char *message =
+      calloc((4 + char_num_size + strlen(err_cstr) + strlen(buffer->name)),
+             sizeof(*message));
+  sprintf(message, "%s:%lu: %s", buffer->name, buffer->cur, err_cstr);
+  return message;
 }

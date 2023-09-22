@@ -1,6 +1,8 @@
 #ifndef ERR_H
 #define ERR_H
 
+#include "./lib.h"
+
 typedef enum
 {
   ERR_OK = 0,
@@ -19,5 +21,6 @@ typedef enum
 } err_t;
 
 const char *err_as_cstr(err_t);
+char *err_generate(err_t err, buffer_t *buffer);
 
 #endif
