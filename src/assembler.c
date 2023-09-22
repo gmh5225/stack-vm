@@ -15,7 +15,7 @@
 void usage(FILE *fp)
 {
   fputs("./assembler.out [FILE] [OUTPUT]\n"
-        "\\tAssemble FILE into bytecode, stored at OUTPUT\n"
+        "\tAssemble FILE into bytecode, stored at OUTPUT\n"
         "\tFILE: File name for assembly code\n"
         "\tOUTPUT: File name for bytecode storage (will be overwritten)\n",
         fp);
