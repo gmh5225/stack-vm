@@ -24,11 +24,11 @@ typedef struct
   data_t *operand;
 } op_t;
 
-#define OP_CREATE_HALT    ((op_t){.opcode = OP_HALT, .operand = 0})
+#define OP_CREATE_HALT    ((op_t){.opcode = OP_HALT, .operand = data_nil()})
 #define OP_CREATE_PUSH(x) ((op_t){.opcode = OP_PUSH, .operand = x})
-#define OP_CREATE_PLUS    ((op_t){.opcode = OP_PLUS, .operand = 0})
+#define OP_CREATE_PLUS    ((op_t){.opcode = OP_PLUS, .operand = data_nil()})
 #define OP_CREATE_DUP(x)  ((op_t){.opcode = OP_DUP, .operand = x})
-#define OP_CREATE_PRINT   ((op_t){.opcode = OP_PRINT, .operand = 0})
+#define OP_CREATE_PRINT   ((op_t){.opcode = OP_PRINT, .operand = data_nil()})
 #define OP_CREATE_JMP(x)  ((op_t){.opcode = OP_JUMP, .operand = x})
 
 void op_print(op_t op, FILE *fp);

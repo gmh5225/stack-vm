@@ -201,6 +201,7 @@ perr_t parse_line(buffer_t *buf, pres_t *res)
   else
     return PERR_ILLEGAL_OPERATOR;
 NO_OPERAND:
+  res->immediate.operand = data_nil();
   buffer_seek_next(buf);
   if (buffer_at_end(*buf) == BUFFER_OK && buf->data[buf->cur] != '\n')
     return PERR_UNEXPECTED_OPERAND;
