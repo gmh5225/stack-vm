@@ -107,18 +107,20 @@ bool test_parse_i64(void)
 {
   // Parsing empty buffers
   buffer_t buf = {0};
-  i64 ret      = 0;
+  data_t *ret  = 0;
   perr_t err   = parse_i64(&buf, &ret);
   ASSERT(test_empty_buffer, err == PERR_EOF);
   // Parsing positive integers
   const char *test_positive_inputs[] = {
-      "1", "10", "1000", "4294967296", "3141", "4611686018427387904"};
+      "1", "10", "1000", "4294967296", "3141", "576460752303423487"};
   const i64 expected_positive_outputs[] = {
-      1, 10, 1000, 4294967296, 3141, 4611686018427387904};
+      1, 10, 1000, 4294967296, 3141, 576460752303423487};
 
-  bool test_positive_correct = true, test_positive_no_error = true;
+  bool test_positive_correct = true, test_positive_no_error = true,
+       test_positive_is_int = true;
   LOG_TEST_START(test_positive_correct);
   LOG_TEST_START(test_positive_no_error);
+  LOG_TEST_START(test_positive_is_int);
 
   for (size_t i = 0; i < ARR_SIZE(test_positive_inputs); ++i)
   {
@@ -130,7 +132,11 @@ bool test_parse_i64(void)
     LOG_TEST_INFO(test_ith_positive_, "Expected=%lu\n", expected);
 
     printf("\t");
-    ASSERT(test_ith_positive_correct, ret == expected);
+    ASSERT(test_ith_positive_is_int, data_type(ret) == DATA_INT);
+    test_positive_is_int = test_positive_is_int && test_ith_positive_is_int;
+
+    printf("\t");
+    ASSERT(test_ith_positive_correct, data_as_int(ret) == expected);
     test_positive_correct = test_positive_correct && test_ith_positive_correct;
 
     printf("\t");
@@ -147,13 +153,15 @@ bool test_parse_i64(void)
 
   // Parsing negative integers
   const char *test_negative_inputs[] = {
-      "-1", "-10", "-1000", "-4294967296", "-3141", "-4611686018427387904"};
+      "-1", "-10", "-1000", "-4294967296", "-3141", "-576460752303423487"};
   const i64 expected_negative_outputs[] = {
-      -1, -10, -1000, -4294967296, -3141, -4611686018427387904};
+      -1, -10, -1000, -4294967296, -3141, -576460752303423487};
 
-  bool test_negative_correct = true, test_negative_no_error = true;
+  bool test_negative_correct = true, test_negative_no_error = true,
+       test_negative_is_int;
   LOG_TEST_START(test_negative_correct);
   LOG_TEST_START(test_negative_no_error);
+  LOG_TEST_START(test_negative_is_int);
 
   for (size_t i = 0; i < ARR_SIZE(test_negative_inputs); ++i)
   {
@@ -165,7 +173,11 @@ bool test_parse_i64(void)
     LOG_TEST_INFO(test_ith_negative_, "Expected=%ld\n", expected);
 
     printf("\t");
-    ASSERT(test_ith_negative_correct, ret == expected);
+    ASSERT(test_ith_negative_is_int, data_type(ret) == DATA_INT);
+    test_negative_is_int = test_negative_is_int && test_ith_negative_is_int;
+
+    printf("\t");
+    ASSERT(test_ith_negative_correct, data_as_int(ret) == expected);
     test_negative_correct = test_negative_correct && test_ith_negative_correct;
 
     printf("\t");
@@ -203,8 +215,15 @@ bool test_parse_i64(void)
 
   LOG_TEST_STATUS(test_bad_got_error, reduce(test_ith_bad_got_error, &));
 
-  return test_empty_buffer && test_positive_correct && test_positive_no_error &&
-         test_negative_correct && test_negative_no_error && test_bad_got_error;
+  return test_empty_buffer &&
+
+         test_positive_correct && test_positive_no_error &&
+         test_positive_is_int &&
+
+         test_negative_correct && test_negative_no_error &&
+         test_negative_is_int &&
+
+         test_bad_got_error;
 }
 
 bool test_parse_line(void)
@@ -216,15 +235,14 @@ bool test_parse_line(void)
     // Test if immediate opcodes can be parsed
     const char *test_cases[] = {
         "noop", "halt", "push 1", "plus", "dup 1", "print",
-        /* "label 1", "jmp 1",  "jmp l1" */
     };
 
     const op_t expected_output[] = {
-        {0},
+        OP_CREATE_NOOP,
         OP_CREATE_HALT,
-        OP_CREATE_PUSH(1),
+        OP_CREATE_PUSH(data_int(1)),
         OP_CREATE_PLUS,
-        OP_CREATE_DUP(1),
+        OP_CREATE_DUP(data_uint(1)),
         OP_CREATE_PRINT,
     };
 
@@ -312,8 +330,8 @@ bool test_parse_line(void)
     const char *test_whitespace_inputs[]     = {"push 1", "push       20",
                                                 "   push 5", "   push     20"};
     const op_t expected_whitespace_outputs[] = {
-        OP_CREATE_PUSH(1), OP_CREATE_PUSH(20), OP_CREATE_PUSH(5),
-        OP_CREATE_PUSH(20)};
+        OP_CREATE_PUSH(data_int(1)), OP_CREATE_PUSH(data_int(20)),
+        OP_CREATE_PUSH(data_int(5)), OP_CREATE_PUSH(data_int(20))};
 
     assert(ARR_SIZE(test_whitespace_inputs) ==
                ARR_SIZE(expected_whitespace_outputs) &&
@@ -404,8 +422,9 @@ bool test_parse_line(void)
     const char test_line_by_line_input[]      = "push 10\n"
                                                 "push 20\n"
                                                 "dup 10\n";
-    const op_t expected_line_by_line_output[] = {
-        OP_CREATE_PUSH(10), OP_CREATE_PUSH(20), OP_CREATE_DUP(10)};
+    const op_t expected_line_by_line_output[] = {OP_CREATE_PUSH(data_int(10)),
+                                                 OP_CREATE_PUSH(data_int(20)),
+                                                 OP_CREATE_DUP(data_uint(10))};
 
     buffer_t buffer = buffer_read_cstr("*test-perr*", test_line_by_line_input,
                                        strlen(test_line_by_line_input));
@@ -522,14 +541,12 @@ bool test_parse_line(void)
                     reduce(test_ith_label_correct_label, &));
   }
 
-  // TODO: Write test for the 3 types of jmp
-
   // Test absolute jumps
   bool test_jmp_absolute_no_perr = true, test_jmp_absolute_is_immediate = true,
        test_jmp_absolute_correct_address = true;
   {
     const char *inputs[]         = {"jmp 200", "jmp 150", "jmp 2"};
-    const i64 expected_outputs[] = {200, 150, 2};
+    const u64 expected_outputs[] = {200, 150, 2};
 
     LOG_TEST_START(test_jmp_absolute_no_perr);
     LOG_TEST_START(test_jmp_absolute_is_immediate);
@@ -538,7 +555,7 @@ bool test_parse_line(void)
     for (size_t i = 0; i < ARR_SIZE(inputs); ++i)
     {
       const char *input  = inputs[i];
-      const i64 expected = expected_outputs[i];
+      const u64 expected = expected_outputs[i];
       buffer_t buf =
           buffer_read_cstr("*test-parse-line*", input, strlen(input));
       pres_t pres = {0};
@@ -552,8 +569,11 @@ bool test_parse_line(void)
       ASSERT(test_ith_is_immediate, pres.type == PRES_IMMEDIATE);
       test_jmp_absolute_is_immediate &= test_ith_is_immediate;
 
+      printf("expected = %lu, got=%lu\n", expected,
+             data_as_uint(pres.immediate.operand));
       printf("\t");
-      ASSERT(test_ith_correct_addr, pres.immediate.operand == expected);
+      ASSERT(test_ith_correct_addr,
+             data_as_uint(pres.immediate.operand) == expected);
       test_jmp_absolute_correct_address &= test_ith_correct_addr;
 
       free(buf.data);
@@ -595,7 +615,8 @@ bool test_parse_line(void)
       test_jmp_relative_is_relative &= test_ith_is_relative;
 
       printf("\t");
-      ASSERT(test_ith_correct_address, pres.relative_jump_operand == expected);
+      ASSERT(test_ith_correct_address,
+             data_as_int(pres.relative_jump_operand) == expected);
       test_jmp_relative_correct_address &= test_ith_correct_address;
 
       free(buf.data);
