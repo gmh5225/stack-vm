@@ -7,8 +7,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define DEBUG         0
-#define IS_BIG_ENDIAN 0
+#define DEBUG 0
+
+// memcpy respects endianness of machine, so no choice here :(
+/* #define IS_BIG_ENDIAN 0 */
 
 #define MAX(a, b)   ((a) > (b) ? (a) : (b))
 #define MIN(a, b)   ((a) > (b) ? (b) : (a))

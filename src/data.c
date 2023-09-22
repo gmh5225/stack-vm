@@ -194,3 +194,39 @@ size_t data_type_bytecode_size(data_type_t type)
     return 0;
   }
 }
+
+size_t data_write(data_t *d, byte *bytes)
+{
+  data_type_t type = data_type(d);
+  bytes[0]         = type;
+  switch (type)
+  {
+  case DATA_NIL:
+    // Just one byte for "being a nil"
+    return 1;
+  case DATA_BOOLEAN:
+    bytes[1] = data_as_bool(d);
+    return 2;
+  case DATA_CHARACTER:
+    bytes[1] = data_as_char(d);
+    return 2;
+  case DATA_FLOAT: {
+    float f = data_as_float(d);
+    memcpy(bytes + 1, &f, sizeof(f));
+    return sizeof(f) + 1;
+  }
+  case DATA_INT: {
+    i64 i = data_as_int(d);
+    memcpy(bytes + 1, &i, sizeof(i));
+    return sizeof(i) + 1;
+  }
+  case DATA_UINT: {
+    u64 i = data_as_uint(d);
+    memcpy(bytes + 1, &i, sizeof(i));
+    return sizeof(i) + 1;
+  }
+  case NUMBER_OF_DATATYPES:
+  default:
+    return 0;
+  }
+}
