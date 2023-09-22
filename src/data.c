@@ -95,3 +95,33 @@ data_type_t data_type(data_t *d)
   assert(false && "data_type: d is not tagged?!");
   return DATA_NIL;
 }
+
+void data_print(data_t *d, FILE *fp)
+{
+  data_type_t type = data_type(d);
+  switch (type)
+  {
+  case DATA_NIL:
+    fprintf(fp, "NIL");
+    break;
+  case DATA_BOOLEAN:
+    fprintf(fp, "bool(%s)", data_as_bool(d) ? "True" : "False");
+    break;
+  case DATA_CHARACTER:
+    fprintf(fp, "char(%c)", data_as_char(d));
+    break;
+  case DATA_INT:
+    fprintf(fp, "int(%" PRId64 ")", data_as_int(d));
+    break;
+  case DATA_UINT:
+    fprintf(fp, "uint(%" PRIu64 ")", data_as_uint(d));
+    break;
+  case DATA_FLOAT:
+    fprintf(fp, "float(%f)", data_as_float(d));
+    break;
+  case NUMBER_OF_DATATYPES:
+  default:
+    fprintf(fp, "<UNKNOWN_ADDRESS>:%" PRIu64 "\n", (word)d);
+    break;
+  }
+}
