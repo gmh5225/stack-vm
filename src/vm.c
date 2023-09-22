@@ -208,6 +208,22 @@ void vm_write_program(vm_t *vm, FILE *fp)
   darr_free(&bytes);
 }
 
+err_t read_numeric_from_bytes(buffer_t *buffer, op_t *ret)
+{
+  byte tag = buffer_pop(buffer);
+  if (!data_type_is_numeric(tag))
+    return ERR_ILLEGAL_TYPE;
+
+  size_t offset = data_type_bytecode_size(tag) - 1;
+
+  if (buffer_space_left(*buffer) < offset)
+    return ERR_BYTECODE_EOF;
+
+  ret->operand = data_read(tag, ((byte *)buffer->data) + buffer->cur);
+  buffer->cur += offset;
+  return ERR_OK;
+}
+
 err_t read_type_from_bytes(buffer_t *buffer, data_type_t type, op_t *ret)
 {
   byte tag = buffer_pop(buffer);
@@ -251,8 +267,9 @@ err_t vm_read_program(vm_t *vm, buffer_t *buffer)
     }
     case OP_PUSH: {
       vm->program[j].opcode = OP_PUSH;
+      // If data is "not numeric" then you can't push it
       err_t err_read_type =
-          read_type_from_bytes(buffer, DATA_INT, vm->program + (j++));
+          read_numeric_from_bytes(buffer, vm->program + (j++));
       if (err_read_type != ERR_OK)
         return err_read_type;
       break;
