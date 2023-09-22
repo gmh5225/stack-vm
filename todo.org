@@ -4,7 +4,7 @@
 #+date: 2023-09-21
 
 
-* WIP [#A] Write a better in memory assembler :BYTECODE:
+* WIP [#A] Write a better bytecode assembler :BYTECODE:
 [[file:src/vm.c::void vm_write_program(vm_t *vm, FILE *fp)]]
 
 We need something a bit more robust, as sometimes bytes aren't
@@ -15,29 +15,33 @@ it isn't consistent.
 just needs to write a tag byte then the n bytes for the payload.  This
 works the other way for the interpreter: read the tag byte then slurp
 n bytes for the payload.
-** WIP Implement a tagging scheme :FEATURE:
-A tagging scheme allows us to implement a variety of types for data in
-the virtual machine.  A big problem with, say, a pointer tagging
-scheme is that we must waste a ton of space in the assembler for small
-types.  For example, a boolean needs only a bit to work but we must
-force it to waste 63 bits of extra space just to make it uniform.  A
-character (at least the C style ones) only need a byte, but we'll need
-to encode 7 waste bytes to make it uniform.
 
-Here's a really simple scheme:
-+ A "tag" byte which tells the interpreter what type of data and how
-  many bytes of data the subsequent operand is
-+ The payload
+A tagging scheme provides a method for using a uniform data type for
+multiple payloads.  The simplest is the tagged union: a byte for
+representing the type of data, and a variable number of bytes for the
+payload.
+** TODO Implement a tagging scheme for the interpreter
+The interpreter needs to take bytecode and generate results.  While a
+tagged union would work here, we can be smarter using /pointer
+tagging/.
 
-A byte is over 256 values: I don't think we're going to need 256 types
-but I don't want to have to do some weird "nibble reading" and it
-allows us to reserve a ton of types or special things for future me to
-use.
+Pointer tagging relies on the least significant bits of some pointer
+always being 0 due to word alignment.  On a 64 bit machine, that's the
+last 3 bits.  Instead of a tagged union, which at minimum requires 2
+words (one for the tag byte, one for payload) we can use one /word/ to
+store both.  It ensures we're passing words around only.
 
-2023-09-21: Reopened as current implementation is good at writing
-bytecode but not great as an in memory representation
+A big problem with this is that we'll need to truncate immediate data
+types that are the same size as word: their 3 least significant bits
+/must/ be reserved for tagging.  So we can support 60 bit integers
+instead of 64 bits.  For larger integers we can rely on the heap.
+** TODO Implement tagging scheme for assembler
+The assembler needs to take source code and generate bytecode.  This
+can be pretty simple using the tagged union idea, but I want a uniform
+data type with the interpreter so let's use the pointer tagging here
+as well.
 * TODO [#B] Write tests [0%] :TESTS:
-** TODO [66%] Write tests for parser
+** TODO [75%] Write tests for parser
 [[file:tests/test-parser.c]]
 *** DONE Complete test_parse_line
 + Test whitespace inclusion
