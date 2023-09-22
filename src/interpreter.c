@@ -31,7 +31,8 @@ int main(int argc, char *argv[])
 
   vm_t vm               = {0};
   const char *file_name = argv[1];
-  FILE *fp              = fopen(file_name, "rb");
+
+  FILE *fp = fopen(file_name, "rb");
   if (!fp)
   {
     fprintf(stderr,
@@ -40,9 +41,12 @@ int main(int argc, char *argv[])
     usage(stderr);
     return 1;
   }
-
-  err_t err_read = vm_read_program(&vm, fp);
+  buffer_t buffer = buffer_read_file(file_name, fp);
   fclose(fp);
+
+  err_t err_read = vm_read_program(&vm, &buffer);
+
+  free(buffer.data);
 
   if (err_read != ERR_OK)
   {
