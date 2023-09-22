@@ -7,7 +7,6 @@
 
 #define VM_STACK_MAX   1024
 #define VM_PROGRAM_MAX 1024
-#define VM_LABEL_MAX   1024
 
 typedef struct
 {
