@@ -85,6 +85,8 @@ void data_print(data_t *, FILE *);
 data_type_t data_type(data_t *);
 data_t *data_numeric_cast(data_t *, data_type_t);
 
+size_t data_type_bytecode_size(data_type_t);
+
 // Writes datum in bytes.  Assume bytes has enough space for datum.
 size_t data_write(data_t *, byte *);
 

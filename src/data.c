@@ -174,3 +174,23 @@ data_t *data_numeric_cast(data_t *d, data_type_t t)
   assert(false && "data_numeric_cast: Supposedly unreachable case occured!");
   return data_nil();
 }
+
+size_t data_type_bytecode_size(data_type_t type)
+{
+  switch (type)
+  {
+  case DATA_NIL:
+    return 1;
+  case DATA_BOOLEAN:
+  case DATA_CHARACTER:
+    return 2;
+  case DATA_FLOAT:
+    return 5;
+  case DATA_INT:
+  case DATA_UINT:
+    return 9;
+  case NUMBER_OF_DATATYPES:
+  default:
+    return 0;
+  }
+}
