@@ -47,6 +47,7 @@ void buffer_seek_next(buffer_t *);
 void buffer_seek_nextline(buffer_t *);
 
 char buffer_peek(buffer_t);
+char buffer_pop(buffer_t *);
 enum BufferState buffer_at_end(buffer_t);
 size_t buffer_space_left(buffer_t);
 

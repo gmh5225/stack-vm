@@ -44,8 +44,15 @@ buffer_t buffer_read_cstr(const char *name, const char *str, size_t size)
 
 char buffer_peek(buffer_t buf)
 {
-  if (buffer_at_end(buf) == BUFFER_OK)
+  if (buffer_at_end(buf) != BUFFER_PAST_END)
     return buf.data[buf.cur];
+  return 0;
+}
+
+char buffer_pop(buffer_t *buf)
+{
+  if (buffer_at_end(*buf) != BUFFER_PAST_END)
+    return buf->data[buf->cur++];
   return 0;
 }
 
