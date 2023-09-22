@@ -35,11 +35,12 @@ A big problem with this is that we'll need to truncate immediate data
 types that are the same size as word: their 3 least significant bits
 /must/ be reserved for tagging.  So we can support 60 bit integers
 instead of 64 bits.  For larger integers we can rely on the heap.
-** TODO Implement tagging scheme for assembler
+** WIP Implement tagging scheme for assembler
 The assembler needs to take source code and generate bytecode.  This
 can be pretty simple using the tagged union idea, but I want a uniform
 data type with the interpreter so let's use the pointer tagging here
 as well.
+** DONE Implement a tagging scheme module
 * TODO [#B] Write tests [0%] :TESTS:
 ** TODO [75%] Write tests for parser
 [[file:tests/test-parser.c]]
