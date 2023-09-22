@@ -71,7 +71,7 @@ err_t vm_execute(vm_t *vm)
     data_type_t b_ = data_type(b);
 
     if (!(data_type_is_numeric(a_) && data_type_is_numeric(b_)))
-      return ERR_ILLEGAL_OPERAND;
+      return ERR_ILLEGAL_TYPE;
 
     data_numerics_promote_on_float(&a, &a_, &b, &b_);
 
@@ -125,7 +125,7 @@ err_t vm_execute(vm_t *vm)
     else if (vm->sptr >= VM_STACK_MAX)
       return ERR_STACK_OVERFLOW;
     else if (data_type(op.operand) != DATA_UINT)
-      return ERR_ILLEGAL_OPERAND;
+      return ERR_ILLEGAL_TYPE;
     vm->stack[vm->sptr] = vm->stack[vm->sptr - 1 - data_as_uint(op.operand)];
     vm->sptr++;
     vm->iptr++;
@@ -140,7 +140,7 @@ err_t vm_execute(vm_t *vm)
   case OP_JUMP: {
     data_type_t type = data_type(op.operand);
     if (!data_type_is_numeric(type))
-      return ERR_ILLEGAL_OPERAND;
+      return ERR_ILLEGAL_TYPE;
     if (type != DATA_UINT || data_as_uint(op.operand) > vm->size_program)
       return ERR_ILLEGAL_JUMP;
     vm->iptr = data_as_uint(op.operand);
@@ -208,7 +208,7 @@ void vm_write_program(vm_t *vm, FILE *fp)
   darr_free(&bytes);
 }
 
-void vm_read_program(vm_t *vm, FILE *fp)
+err_t vm_read_program(vm_t *vm, FILE *fp)
 {
   fseek(fp, 0, SEEK_END);
   long size = ftell(fp);
@@ -240,10 +240,7 @@ void vm_read_program(vm_t *vm, FILE *fp)
       vm->program[j].opcode = OP_PUSH;
       byte tag              = bytes[++i];
       if (tag != DATA_INT)
-      {
-        assert(false && "vm_read_program: Data is not correctly typed (In"
-                        "reading OP_PUSH)");
-      }
+        return ERR_ILLEGAL_TYPE;
       ++i;
       offset                   = data_type_bytecode_size(DATA_INT);
       vm->program[j++].operand = data_read(DATA_INT, bytes + i);
@@ -259,10 +256,7 @@ void vm_read_program(vm_t *vm, FILE *fp)
       vm->program[j].opcode = OP_DUP;
       byte tag              = bytes[++i];
       if (tag != DATA_UINT)
-      {
-        assert(false && "vm_read_program: Data is not correctly typed (In"
-                        "reading OP_DUP)");
-      }
+        return ERR_ILLEGAL_TYPE;
       ++i;
       offset                   = data_type_bytecode_size(DATA_UINT);
       vm->program[j++].operand = data_read(DATA_UINT, bytes + i);
@@ -278,10 +272,7 @@ void vm_read_program(vm_t *vm, FILE *fp)
       vm->program[j].opcode = OP_JUMP;
       byte tag              = bytes[++i];
       if (tag != DATA_UINT)
-      {
-        assert(false && "vm_read_program: Data is not correctly typed (In"
-                        "reading OP_JUMP)");
-      }
+        return ERR_ILLEGAL_TYPE;
       ++i;
       offset                   = data_type_bytecode_size(DATA_UINT);
       vm->program[j++].operand = data_read(DATA_UINT, bytes + i);
@@ -290,8 +281,7 @@ void vm_read_program(vm_t *vm, FILE *fp)
     }
     case NUMBER_OF_OPERATORS:
     default:
-      assert(false && "vm_read_program: Unexpected opcode in bytecode "
-                      "(possibly corrupted?)");
+      return ERR_ILLEGAL_INSTRUCTION;
     }
 
 #if DEBUG == 1
@@ -305,4 +295,5 @@ void vm_read_program(vm_t *vm, FILE *fp)
     assert(false && "vm_read_program: Program is larger than VM_PROGRAM_MAX");
 
   vm->size_program = j;
+  return ERR_OK;
 }
