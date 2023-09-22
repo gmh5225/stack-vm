@@ -123,7 +123,7 @@ void data_print(data_t *d, FILE *fp)
     break;
   case NUMBER_OF_DATATYPES:
   default:
-    fprintf(fp, "<UNKNOWN_ADDRESS>:%" PRIu64 "\n", (word)d);
+    fprintf(fp, "<UNKNOWN:%" PRIu64 ">", (word)d);
     break;
   }
 }
@@ -227,6 +227,7 @@ size_t data_write(data_t *d, byte *bytes)
   }
   case NUMBER_OF_DATATYPES:
   default:
+    assert(false && "data_write: Type of data is not valid");
     return 0;
   }
 }
