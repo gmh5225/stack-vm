@@ -68,6 +68,7 @@ data_t *data_uint(u64 u);
 
 void data_print(data_t *);
 
+data_type_t data_type(data_t *);
 data_t *data_numeric_cast(data_t *, data_type_t);
 
 // Writes datum in bytes.  Assume bytes has enough space for datum.

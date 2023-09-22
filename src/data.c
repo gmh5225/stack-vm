@@ -52,3 +52,21 @@ data_t *data_uint(u64 u)
   assert(u <= UINT60_MAX && "data_uint: u is not 60 bits");
   return (data_t *)TAG(u << 2, MASK_UINT, TAG_UINT);
 }
+
+data_type_t data_type(data_t *d)
+{
+  if (TAGGED((word)d, MASK_NIL, TAG_NIL))
+    return DATA_NIL;
+  else if (TAGGED((word)d, MASK_BOOLEAN, TAG_BOOLEAN))
+    return DATA_BOOLEAN;
+  else if (TAGGED((word)d, MASK_CHARACTER, TAG_CHARACTER))
+    return DATA_CHARACTER;
+  else if (TAGGED((word)d, MASK_INT, TAG_INT))
+    return DATA_INT;
+  else if (TAGGED((word)d, MASK_UINT, TAG_UINT))
+    return DATA_UINT;
+  else if (TAGGED((word)d, MASK_FLOAT, TAG_FLOAT))
+    return DATA_FLOAT;
+  assert(false && "data_type: d is not tagged?!");
+  return DATA_NIL;
+}
