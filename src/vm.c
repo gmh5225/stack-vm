@@ -214,9 +214,95 @@ void vm_read_program(vm_t *vm, FILE *fp)
   long size = ftell(fp);
   fseek(fp, 0, SEEK_SET);
 
-  size_t program_size = size / sizeof(vm->program[0]);
-  op_t program[program_size];
+  byte bytes[size];
+  for (size_t i = 0; i < (size_t)size; ++i)
+    fread(bytes + i, sizeof(byte), 1, fp);
 
-  fread(program, sizeof(program[0]), program_size, fp);
-  vm_copy_program(vm, program, program_size);
+  size_t j = 0;
+  for (size_t i = 0; i < (size_t)size && j < VM_PROGRAM_MAX; ++i)
+  {
+    size_t offset = 0;
+    // first byte is an opcode
+    inst_t opcode = bytes[i];
+    switch (opcode)
+    {
+    case OP_NONE: {
+      vm->program[j].opcode    = OP_NONE;
+      vm->program[j++].operand = data_nil();
+      break;
+    }
+    case OP_HALT: {
+      vm->program[j].opcode    = OP_HALT;
+      vm->program[j++].operand = data_nil();
+      break;
+    }
+    case OP_PUSH: {
+      vm->program[j].opcode = OP_PUSH;
+      byte tag              = bytes[++i];
+      if (tag != DATA_INT)
+      {
+        assert(false && "vm_read_program: Data is not correctly typed (In"
+                        "reading OP_PUSH)");
+      }
+      ++i;
+      offset                   = data_type_bytecode_size(DATA_INT);
+      vm->program[j++].operand = data_read(DATA_INT, bytes + i);
+      i += offset - 2;
+      break;
+    }
+    case OP_PLUS: {
+      vm->program[j].opcode    = OP_PLUS;
+      vm->program[j++].operand = data_nil();
+      break;
+    }
+    case OP_DUP: {
+      vm->program[j].opcode = OP_DUP;
+      byte tag              = bytes[++i];
+      if (tag != DATA_UINT)
+      {
+        assert(false && "vm_read_program: Data is not correctly typed (In"
+                        "reading OP_DUP)");
+      }
+      ++i;
+      offset                   = data_type_bytecode_size(DATA_UINT);
+      vm->program[j++].operand = data_read(DATA_UINT, bytes + i);
+      i += offset - 2;
+      break;
+    }
+    case OP_PRINT: {
+      vm->program[j].opcode    = OP_PRINT;
+      vm->program[j++].operand = data_nil();
+      break;
+    }
+    case OP_JUMP: {
+      vm->program[j].opcode = OP_JUMP;
+      byte tag              = bytes[++i];
+      if (tag != DATA_UINT)
+      {
+        assert(false && "vm_read_program: Data is not correctly typed (In"
+                        "reading OP_JUMP)");
+      }
+      ++i;
+      offset                   = data_type_bytecode_size(DATA_UINT);
+      vm->program[j++].operand = data_read(DATA_UINT, bytes + i);
+      i += offset - 2;
+      break;
+    }
+    case NUMBER_OF_OPERATORS:
+    default:
+      assert(false && "vm_read_program: Unexpected opcode in bytecode "
+                      "(possibly corrupted?)");
+    }
+
+#if DEBUG == 1
+    printf("[INFO]: Read instruction `");
+    op_print(vm->program[j - 1], stdout);
+    printf("` from file\n");
+#endif
+  }
+
+  if (j == VM_PROGRAM_MAX)
+    assert(false && "vm_read_program: Program is larger than VM_PROGRAM_MAX");
+
+  vm->size_program = j;
 }
