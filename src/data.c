@@ -20,7 +20,7 @@ data_t *data_bool(bool b)
   word w = b;
   // Reserve space for tag
   w <<= 3;
-  return (data_t *)TAG((word)b, MASK_BOOL, TAG_BOOL);
+  return (data_t *)TAG((word)b, MASK_BOOLEAN, TAG_BOOLEAN);
 }
 
 data_t *data_char(char c)
@@ -30,7 +30,7 @@ data_t *data_char(char c)
   memcpy(&bits, &c, sizeof(c));
   // Reserve space for tag
   bits <<= 3;
-  return (data_t *)TAG(bits, MASK_CHAR, TAG_CHAR);
+  return (data_t *)TAG(bits, MASK_CHARACTER, TAG_CHARACTER);
 }
 
 data_t *data_float(float f)

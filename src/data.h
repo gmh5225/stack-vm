@@ -20,12 +20,12 @@ typedef enum DataType
 typedef enum
 {
   // The "immediate types"
-  TAG_INT   = 0x0, // 0b000
-  TAG_UINT  = 0x2, // 0b010
-  TAG_CHAR  = 0x3, // 0b011
-  TAG_BOOL  = 0x4, // 0b100
-  TAG_FLOAT = 0x5, // 0b101
-  TAG_NIL   = 0x6, // 0b111
+  TAG_INT       = 0x0, // 0b000
+  TAG_UINT      = 0x2, // 0b010
+  TAG_CHARACTER = 0x3, // 0b011
+  TAG_BOOLEAN   = 0x4, // 0b100
+  TAG_FLOAT     = 0x5, // 0b101
+  TAG_NIL       = 0x6, // 0b111
 
   // Any "allocated" types
   // TODO: Create some allocated types
@@ -33,12 +33,12 @@ typedef enum
 
 typedef enum
 {
-  MASK_INT   = 7,
-  MASK_UINT  = 7,
-  MASK_CHAR  = 7,
-  MASK_BOOL  = 7,
-  MASK_NIL   = 7,
-  MASK_FLOAT = 7,
+  MASK_INT       = 7,
+  MASK_UINT      = 7,
+  MASK_CHARACTER = 7,
+  MASK_BOOLEAN   = 7,
+  MASK_NIL       = 7,
+  MASK_FLOAT     = 7,
 } mask_t;
 
 // Type level separation of tagged bits
