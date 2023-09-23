@@ -177,9 +177,9 @@ void vm_write_program(vm_t *vm, FILE *fp)
   for (size_t i = 0; i < vm->size_program; ++i)
   {
 #if VERBOSE == 1
-    printf("[INFO]: Assembling `");
+    printf("[" TERM_GREEN "vm_write_program" TERM_RESET "]: Assembling `");
     op_print(vm->program[i], stdout);
-    puts("`");
+    printf("`...");
 #endif
     size_t size = 0;
     if (vm->program[i].opcode >= OP_PUSH)
@@ -201,7 +201,7 @@ void vm_write_program(vm_t *vm, FILE *fp)
     }
 
 #if VERBOSE == 1
-    printf("[INFO]: Assembled %lu bytes\n", size + 1);
+    printf(" %lu bytes\n", size + 1);
 #endif
   }
   fwrite(bytes.data, sizeof(byte), bytes.used, fp);
@@ -249,8 +249,14 @@ err_t read_type_from_bytes(buffer_t *buffer, data_type_t type, op_t *ret)
 err_t vm_read_program(vm_t *vm, buffer_t *buffer)
 {
   size_t j = 0;
+#if VERBOSE == 1
+  size_t prev_bytes = 0;
+#endif
   while (j < VM_PROGRAM_MAX && buffer_at_end(*buffer) != BUFFER_PAST_END)
   {
+#if VERBOSE == 1
+    prev_bytes = buffer->cur;
+#endif
     // first byte is an opcode
     inst_t opcode = buffer_pop(buffer);
     switch (opcode)
@@ -306,9 +312,10 @@ err_t vm_read_program(vm_t *vm, buffer_t *buffer)
     }
 
 #if VERBOSE == 1
-    printf("[INFO]: Read instruction `");
+    printf("[" TERM_GREEN "vm_read_program" TERM_RESET "]: Read `");
     op_print(vm->program[j - 1], stdout);
-    printf("` from file\n");
+    size_t diff = buffer->cur - prev_bytes;
+    printf("` %lu %s\n", diff, diff == 1 ? "byte" : "bytes");
 #endif
   }
 

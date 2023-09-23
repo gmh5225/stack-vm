@@ -46,6 +46,11 @@ int main(int argc, char *argv[])
 
   err_t err_read = vm_read_program(&vm, &buffer);
 
+#if VERBOSE == 1
+  printf("[" TERM_CYAN "INTEPRETER" TERM_RESET "]: Total read: %lu bytes\n",
+         buffer.cur);
+#endif
+
   free(buffer.data);
 
   if (err_read != ERR_OK)
@@ -55,6 +60,12 @@ int main(int argc, char *argv[])
     free(message);
     return -1;
   }
+
+#if VERBOSE == 1
+  printf("[" TERM_CYAN "INTEPRETER" TERM_RESET
+         "]: Number of instructions: %lu\n",
+         vm.size_program);
+#endif
 
   err_t err_exec = vm_execute_all(&vm);
   if (err_exec != ERR_OK)

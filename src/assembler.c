@@ -104,9 +104,11 @@ int main(int argc, char *argv[])
   vm_write_program(&vm, fp);
   fclose(fp);
 
-  printf("[" TERM_GREEN "INFO" TERM_RESET
+#if VERBOSE == 1
+  printf("[" TERM_CYAN "ASSEMBLER" TERM_RESET
          "]: Successfully compiled `%s`->`%s`\n",
          in_name, out_name);
+#endif
 
   if (generated_output)
     free(out_name);

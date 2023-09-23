@@ -12,6 +12,7 @@
 
 #define TERM_RED   "\x1b[31m"
 #define TERM_GREEN "\x1b[32m"
+#define TERM_CYAN  "\x1b[36m"
 #define TERM_RESET "\x1b[0m"
 
 // memcpy respects endianness of machine, so no choice here :(
