@@ -8,60 +8,166 @@
 
 #include <assert.h>
 #include <ctype.h>
+#include <errno.h>
+#include <limits.h>
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
-
-size_t get_size_i64(char *str, size_t max_size)
-{
-  if (!(str[0] == '-' || isdigit(str[0])))
-    return 0;
-  size_t i;
-  for (i = 1; i < max_size; ++i)
-  {
-    if (isspace(str[i]) || str[i] == '\0')
-      return i; // Stop parsing
-    else if (!isdigit(str[i]))
-      return 0; // Isn't a number
-  }
-  return i; // EOF
-}
 
 perr_t parse_u64(buffer_t *buf, data_t **ret)
 {
   if (buffer_at_end(*buf) == BUFFER_PAST_END)
     return PERR_EOF;
-  char *operand = buf->data + buf->cur;
-  if (operand[0] == '-')
-    return PERR_ILLEGAL_INST_ADDRESS;
-  size_t end_of_number = get_size_i64(operand, buf->available - buf->cur);
-  u64 number           = 0;
-  if (end_of_number != 0)
+  char *operand = buf->data + buf->cur, *end;
+  u64 i         = strtoull(operand, &end, 10);
+  if (end == operand)
   {
-    number = strtoull(operand, NULL, 10);
-    buf->cur += end_of_number;
-    *ret = data_uint(number);
-    return PERR_OK;
+    // Error as no digits were found
+    return PERR_EXPECTED_OPERAND;
   }
-  else
-    return PERR_EXPECTED_OPERAND; // catch all
+  else if (errno != 0)
+  {
+    errno = 0;
+    if (i == ULLONG_MAX)
+      return PERR_UINTEGER_OVERFLOW;
+  }
+  else if (i > UINT60_MAX)
+    return PERR_UINTEGER_OVERFLOW;
+  else if (!isspace(*end) && !isblank(*end))
+    return PERR_EXPECTED_OPERAND;
+
+  // Now find the distance, set the offset
+  buf->cur += end - operand;
+  *ret = data_uint(i);
+  return PERR_OK;
 }
 
 perr_t parse_i64(buffer_t *buf, data_t **ret)
 {
   if (buffer_at_end(*buf) == BUFFER_PAST_END)
     return PERR_EOF;
-  char *operand        = buf->data + buf->cur;
-  size_t end_of_number = get_size_i64(operand, buf->available - buf->cur);
-  i64 number           = 0;
-  if (end_of_number != 0)
+  char *operand = buf->data + buf->cur, *end = NULL;
+  i64 i = strtoll(operand, &end, 10);
+  if (end == operand)
   {
-    number = atoll(operand);
-    buf->cur += end_of_number;
-    *ret = data_int(number);
-    return PERR_OK;
+    // Error as no digits were found
+    return PERR_EXPECTED_OPERAND;
+  }
+  else if (errno != 0)
+  {
+    errno = 0;
+    if (i == LLONG_MIN)
+      return PERR_INTEGER_UNDERFLOW;
+    else
+      return PERR_INTEGER_OVERFLOW;
+  }
+  else if (i < INT60_MIN)
+    return PERR_INTEGER_UNDERFLOW;
+  else if (i > INT60_MAX)
+    return PERR_INTEGER_OVERFLOW;
+  else if (!isspace(*end) && !isblank(*end))
+    return PERR_EXPECTED_OPERAND;
+
+  // Now find the distance, set the offset
+  buf->cur += end - operand;
+  *ret = data_int(i);
+  return PERR_OK;
+}
+
+perr_t parse_f32(buffer_t *buf, data_t **ret)
+{
+  if (buffer_at_end(*buf) == BUFFER_PAST_END)
+    return PERR_EOF;
+  char *operand = buf->data + buf->cur, *end = NULL;
+  float f = strtof(operand, &end);
+  if (operand == end)
+  {
+    // Error condition for strtof
+    return PERR_EXPECTED_OPERAND;
+  }
+  else if (errno != 0)
+  {
+    errno = 0;
+    if (f == HUGE_VALF)
+      return PERR_FLOAT_OVERFLOW;
+    else
+      return PERR_FLOAT_UNDERFLOW;
+  }
+  else if (!isspace(*end) && !isblank(*end))
+    return PERR_EXPECTED_OPERAND;
+
+  buf->cur += end - operand;
+  *ret = data_float(f);
+  return PERR_OK;
+}
+
+perr_t parse_bool(buffer_t *buf, data_t **ret)
+{
+  if (buffer_at_end(*buf) == BUFFER_PAST_END)
+    return PERR_EOF;
+  bool b        = false;
+  char *operand = buf->data + buf->cur;
+  if (operand[0] == '1' && (isblank(operand[1]) || isspace(operand[1])))
+  {
+    buf->cur += 1;
+    b = true;
+  }
+  else if (memcmp(operand, "true", 4) == 0 &&
+           (isblank(operand[4]) || isspace(operand[4])))
+  {
+    buf->cur += 4;
+    b = true;
+  }
+  else if (operand[0] == '0' && (isblank(operand[1]) || isspace(operand[1])))
+  {
+    buf->cur += 1;
+    b = false;
+  }
+  else if (memcmp(operand, "false", 5) == 0 &&
+           (isblank(operand[4]) || isspace(operand[4])))
+  {
+    buf->cur += 5;
+    b = false;
   }
   else
-    return PERR_EXPECTED_OPERAND; // catch all
+    return PERR_EXPECTED_OPERAND;
+
+  *ret = data_bool(b);
+  return PERR_OK;
+}
+
+perr_t parse_char(buffer_t *buf, data_t **ret)
+{
+  if (buffer_at_end(*buf) == BUFFER_PAST_END)
+    return PERR_EOF;
+  char *operand = buf->data + buf->cur;
+  if (isdigit(operand[0]) || (operand[0] == '-' && isdigit(operand[1])))
+  {
+    size_t i = operand[0] == '-' ? 1 : 0;
+    for (; isdigit(operand[i]); ++i)
+      continue;
+
+    if (i > (operand[0] == '-' ? 4 : 3))
+      return PERR_EXPECTED_OPERAND;
+
+    // we can use atoi cos we're not parsing a massive number
+    int op = atoi(operand);
+    if (op < CHAR_MIN)
+      return PERR_CHAR_UNDERFLOW;
+    else if (op > CHAR_MAX)
+      return PERR_CHAR_OVERFLOW;
+
+    buf->cur += i;
+    *ret = data_char(op);
+  }
+  else if (operand[0] == '\'' && operand[2] == '\'')
+  {
+    buf->cur += 3;
+    *ret = data_char(operand[1]);
+  }
+  else
+    return PERR_EXPECTED_OPERAND;
+  return PERR_OK;
 }
 
 perr_t parse_line(buffer_t *buf, pres_t *res)
@@ -91,6 +197,48 @@ perr_t parse_line(buffer_t *buf, pres_t *res)
     res->immediate.opcode = OP_HALT;
     goto NO_OPERAND;
   }
+  // Type based pushes
+  else if (memcmp(buf->data + buf->cur, "upush", 5) == 0)
+  {
+    buf->cur += end_of_operator;
+    buffer_seek_next(buf);
+    res->type             = PRES_IMMEDIATE;
+    res->immediate.opcode = OP_PUSH;
+    return parse_u64(buf, &res->immediate.operand);
+  }
+  else if (memcmp(buf->data + buf->cur, "ipush", 5) == 0)
+  {
+    buf->cur += end_of_operator;
+    buffer_seek_next(buf);
+    res->type             = PRES_IMMEDIATE;
+    res->immediate.opcode = OP_PUSH;
+    return parse_i64(buf, &res->immediate.operand);
+  }
+  else if (memcmp(buf->data + buf->cur, "fpush", 5) == 0)
+  {
+    buf->cur += end_of_operator;
+    buffer_seek_next(buf);
+    res->type             = PRES_IMMEDIATE;
+    res->immediate.opcode = OP_PUSH;
+    return parse_f32(buf, &res->immediate.operand);
+  }
+  else if (memcmp(buf->data + buf->cur, "bpush", 5) == 0)
+  {
+    buf->cur += end_of_operator;
+    buffer_seek_next(buf);
+    res->type             = PRES_IMMEDIATE;
+    res->immediate.opcode = OP_PUSH;
+    return parse_bool(buf, &res->immediate.operand);
+  }
+  else if (memcmp(buf->data + buf->cur, "cpush", 5) == 0)
+  {
+    buf->cur += end_of_operator;
+    buffer_seek_next(buf);
+    res->type             = PRES_IMMEDIATE;
+    res->immediate.opcode = OP_PUSH;
+    return parse_char(buf, &res->immediate.operand);
+  }
+  // push = ipush
   else if (memcmp(buf->data + buf->cur, "push", 4) == 0)
   {
     // Seek the operand
@@ -228,7 +376,8 @@ perr_t process_presults(pres_t *results, size_t results_size, buffer_t *buffer,
   for (size_t i = 0; i < results_size; ++i)
   {
     pres_t res = results[i];
-    // Not processing immediates or labels (yet) so just increment program_size
+    // Not processing immediates or labels (yet) so just increment
+    // program_size
     if (res.type == PRES_IMMEDIATE || res.type == PRES_JUMP_LABEL)
       ++program_size;
     else if (res.type == PRES_JUMP_RELATIVE)
@@ -342,6 +491,20 @@ const char *perr_as_cstr(perr_t err)
   {
   case PERR_OK:
     return "PERR_OK";
+  case PERR_CHAR_OVERFLOW:
+    return "PERR_CHAR_OVERFLOW";
+  case PERR_CHAR_UNDERFLOW:
+    return "PERR_CHAR_UNDERFLOW";
+  case PERR_INTEGER_OVERFLOW:
+    return "PERR_INTEGER_OVERFLOW";
+  case PERR_INTEGER_UNDERFLOW:
+    return "PERR_INTEGER_UNDERFLOW";
+  case PERR_UINTEGER_OVERFLOW:
+    return "PERR_UINTEGER_OVERFLOW";
+  case PERR_FLOAT_UNDERFLOW:
+    return "PERR_FLOAT_UNDERFLOW";
+  case PERR_FLOAT_OVERFLOW:
+    return "PERR_FLOAT_OVERFLOW";
   case PERR_EXPECTED_OPERAND:
     return "PERR_EXPECTED_OPERAND";
   case PERR_UNEXPECTED_OPERAND:
