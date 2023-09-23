@@ -22,15 +22,22 @@ bool test_perr_generate(void)
   free(data);
 
   // This is to make sure we get an error if tests become outdated
-  static_assert(NUMBER_OF_PERRORS == 8, "test_perr_generate: Outdated!");
+  static_assert(NUMBER_OF_PERRORS == 15, "test_perr_generate: Outdated!");
 
   // Current schema is something like "<name>:<pos> <err-cstr>" so
   // let's test that with some expected outputs.
   const char *expected_outputs_test_perr_cstr[] = {
       "*test-perr*:0: PERR_OK",
+      "*test-perr*:0: PERR_CHAR_UNDERFLOW",
+      "*test-perr*:0: PERR_CHAR_OVERFLOW",
+      "*test-perr*:0: PERR_INTEGER_UNDERFLOW",
+      "*test-perr*:0: PERR_INTEGER_OVERFLOW",
+      "*test-perr*:0: PERR_UINTEGER_OVERFLOW",
+      "*test-perr*:0: PERR_FLOAT_UNDERFLOW",
+      "*test-perr*:0: PERR_FLOAT_OVERFLOW",
+      "*test-perr*:0: PERR_UNEXPECTED_OPERAND",
       "*test-perr*:0: PERR_EXPECTED_OPERAND",
       "*test-perr*:0: PERR_EXPECTED_LABEL",
-      "*test-perr*:0: PERR_UNEXPECTED_OPERAND",
       "*test-perr*:0: PERR_UNKNOWN_LABEL",
       "*test-perr*:0: PERR_ILLEGAL_OPERATOR",
       "*test-perr*:0: PERR_ILLEGAL_INST_ADDRESS",
