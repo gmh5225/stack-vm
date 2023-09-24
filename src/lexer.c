@@ -84,10 +84,19 @@ lerr_t tokenise_buffer(stream_t *stream, buffer_t *buffer)
 {
   stream->name   = buffer->name;
   stream->cursor = 0;
-  darr_t tokens  = {0};
+
+  if (buffer_at_end(*buffer) != BUFFER_OK)
+  {
+    stream->tokens = NULL;
+    stream->size   = 0;
+    return LERR_OK;
+  }
+
+  darr_t tokens = {0};
   darr_init(&tokens, 1, sizeof(token_t));
 
-  size_t column = 0, line = 0;
+  size_t column = 0, line = 1;
+
   while (buffer_at_end(*buffer) != BUFFER_PAST_END)
   {
     token_t token = {0};
