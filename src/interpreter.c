@@ -78,5 +78,14 @@ int main(int argc, char *argv[])
     return -1;
   }
 
+#if VERBOSE == 1
+  if (vm.sptr > 0)
+  {
+    printf("[" TERM_RED "STACK"
+           "]: Leak of %lu items\n",
+           vm->sptr);
+  }
+#endif
+
   return 0;
 }

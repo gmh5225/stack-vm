@@ -177,6 +177,16 @@ perr_t parse_line(buffer_t *buf, pres_t *res)
   // Bring us to the first "token"
   buffer_seek_next(buf);
 
+#if DEBUG == 1
+  enum BufferState state = buffer_at_end(*buf);
+  printf("[" TERM_GREEN "parse_line" TERM_RESET
+         "]: (buf_state=%s, %lu/%lu): Parsing `%s`\n",
+         state == BUFFER_OK       ? "OK"
+         : state == BUFFER_AT_END ? "AT_END"
+                                  : "PAST_END",
+         buf->cur, buf->available, buf->data + buf->cur);
+#endif
+
   // If at end, fail
   if (buffer_at_end(*buf) != BUFFER_OK)
     return PERR_EOF;
