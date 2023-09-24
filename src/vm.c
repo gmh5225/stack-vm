@@ -140,7 +140,6 @@ err_t vm_execute(vm_t *vm)
     if (vm->sptr == 0)
       return ERR_STACK_UNDERFLOW;
     data_print(vm->stack[vm->sptr - 1], stdout);
-    printf("\n");
     vm->iptr++;
     break;
   case OP_JUMP: {
