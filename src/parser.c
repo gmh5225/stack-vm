@@ -248,6 +248,13 @@ perr_t parse_line(buffer_t *buf, pres_t *res)
     res->immediate.opcode = OP_PUSH;
     return parse_i64(buf, &res->immediate.operand);
   }
+  else if (memcmp(buf->data + buf->cur, "pop", 3) == 0)
+  {
+    buf->cur += end_of_operator;
+    res->type             = PRES_IMMEDIATE;
+    res->immediate.opcode = OP_POP;
+    goto NO_OPERAND;
+  }
   else if (memcmp(buf->data + buf->cur, "plus", 4) == 0)
   {
     buf->cur += end_of_operator;

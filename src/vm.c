@@ -54,6 +54,12 @@ err_t vm_execute(vm_t *vm)
   case OP_HALT:
     vm->iptr++;
     break;
+  case OP_POP:
+    if (vm->sptr == 0)
+      return ERR_STACK_UNDERFLOW;
+    vm->sptr--;
+    vm->iptr++;
+    break;
   case OP_PUSH:
     if (vm->sptr >= VM_STACK_MAX)
       return ERR_STACK_OVERFLOW;
@@ -289,6 +295,11 @@ err_t vm_read_program(vm_t *vm, buffer_t *buffer)
     }
     case OP_HALT: {
       vm->program[j].opcode    = OP_HALT;
+      vm->program[j++].operand = data_nil();
+      break;
+    }
+    case OP_POP: {
+      vm->program[j].opcode    = OP_POP;
       vm->program[j++].operand = data_nil();
       break;
     }
