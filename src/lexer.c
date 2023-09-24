@@ -70,8 +70,13 @@ token_t token_create(token_type_t type, size_t col, size_t line, char *str,
                    .column  = col,
                    .line    = line,
                    .content = calloc(size + 1, sizeof(*str))};
-  memcpy(token.content, str, size);
-  token.content[size] = '\0';
+  if (str)
+  {
+    memcpy(token.content, str, size);
+    token.content[size] = '\0';
+  }
+  else
+    memset(token.content, 0, size + 1);
   return token;
 }
 
