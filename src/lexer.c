@@ -197,11 +197,14 @@ lerr_t tokenise_buffer(stream_t *stream, buffer_t *buffer)
       // Number parsers
       else if (isdigit(c) || (c == '-' && isdigit(buffer_peek(*buffer))))
       {
+        bool decimal_place = false;
         size_t number_size = 0;
         for (char n_char = buffer_peek(*buffer);
-             number_size < buffer_space_left(*buffer) && isdigit(n_char);
+             number_size < buffer_space_left(*buffer) &&
+             (isdigit(n_char) || (n_char == '.' && !decimal_place));
              n_char = buffer->data[buffer->cur + (++number_size)])
-          continue;
+          if (n_char == '.')
+            decimal_place = true;
         token = token_create(TOKEN_NUMBER, column, line,
                              buffer->data + buffer->cur - 1, number_size + 1);
         column += number_size + 1;
