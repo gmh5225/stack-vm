@@ -6,10 +6,10 @@
 A simple implementation of a stack based virtual machine that
 assembles and interprets custom byte code, in C11.
 
- I don't support Windows necessarily
-but I think it should be possible to build and run this using MinGW or
-something as I'm not doing anything particularly Posix specific (yet).
-+But honestly, why are you using Windows anyway?+
+I don't support Windows necessarily but I think it should be possible
+to build and run this using MinGW or something as I'm not doing
+anything particularly Posix specific (yet).  +But honestly, why are
+you using Windows anyway?+
 
 * Build instructions
 Have ~make~ installed pretty please.  I'm using ~gcc~ but ~clang~ does
