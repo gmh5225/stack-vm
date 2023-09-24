@@ -13,11 +13,11 @@ typedef enum
 
 typedef enum
 {
-  TOKEN_EOF,
+  TOKEN_EOF = 0,
   TOKEN_DOT,
   TOKEN_DASH,
-  TOKEN_COMMENT,
   TOKEN_WHITESPACE,
+  TOKEN_COMMENT,
 
   // Useful for parsing
   TOKEN_SYMBOL,

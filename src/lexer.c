@@ -85,7 +85,7 @@ lerr_t tokenise_buffer(stream_t *stream, buffer_t *buffer)
   stream->name   = buffer->name;
   stream->cursor = 0;
 
-  if (buffer_at_end(*buffer) != BUFFER_OK)
+  if (buffer_at_end(*buffer) == BUFFER_PAST_END)
   {
     stream->tokens = NULL;
     stream->size   = 0;
@@ -247,4 +247,5 @@ void stream_free(stream_t *stream)
     free(stream->tokens[i].content);
   }
   free(stream->tokens);
+  *stream = (stream_t){0};
 }
