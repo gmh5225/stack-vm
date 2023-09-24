@@ -136,6 +136,8 @@ bool test_parse_i64(void)
     err              = parse_i64(&buf, &ret);
     const i64 expected = expected_positive_outputs[i];
 
+    printf("%s, data=%s\n", perr_as_cstr(err), buf.data + buf.cur);
+
     LOG_TEST_INFO(test_ith_positive_, "Expected=%lu\n", expected);
 
     printf("\t");
@@ -241,15 +243,12 @@ bool test_parse_line(void)
   {
     // Test if immediate opcodes can be parsed
     const char *test_cases[] = {
-        "noop", "halt", "push 1", "plus", "dup 1", "print",
+        "noop", "halt", "push 1", "pop", "plus", "dup 1", "print",
     };
 
     const op_t expected_output[] = {
-        OP_CREATE_NOOP,
-        OP_CREATE_HALT,
-        OP_CREATE_PUSH(data_int(1)),
-        OP_CREATE_PLUS,
-        OP_CREATE_DUP(data_uint(1)),
+        OP_CREATE_NOOP,  OP_CREATE_HALT, OP_CREATE_PUSH(data_int(1)),
+        OP_CREATE_POP,   OP_CREATE_PLUS, OP_CREATE_DUP(data_uint(1)),
         OP_CREATE_PRINT,
     };
 
@@ -274,6 +273,9 @@ bool test_parse_line(void)
 
       LOG_TEST_INFO(test_ith_parsed_, "Expected=%s", "");
       op_print(expected_out, stdout);
+      puts("");
+      LOG_TEST_INFO(test_ith_parsed_, "Got=%s", "");
+      op_print(pres.immediate, stdout);
       puts("");
 
       printf("\t");

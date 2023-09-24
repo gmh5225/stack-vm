@@ -20,7 +20,7 @@ perr_t parse_u64(buffer_t *buf, data_t **ret)
     return PERR_EOF;
   char *operand = buf->data + buf->cur, *end;
   u64 i         = strtoull(operand, &end, 10);
-  if (end == operand)
+  if (end == operand && !isdigit(operand[0]))
   {
     // Error as no digits were found
     return PERR_EXPECTED_OPERAND;
@@ -33,8 +33,6 @@ perr_t parse_u64(buffer_t *buf, data_t **ret)
   }
   else if (i > UINT60_MAX)
     return PERR_UINTEGER_OVERFLOW;
-  else if (!isspace(*end) && !isblank(*end))
-    return PERR_EXPECTED_OPERAND;
 
   // Now find the distance, set the offset
   buf->cur += end - operand;
@@ -48,7 +46,7 @@ perr_t parse_i64(buffer_t *buf, data_t **ret)
     return PERR_EOF;
   char *operand = buf->data + buf->cur, *end = NULL;
   i64 i = strtoll(operand, &end, 10);
-  if (end == operand)
+  if (end == operand && !isdigit(operand[0]))
   {
     // Error as no digits were found
     return PERR_EXPECTED_OPERAND;
@@ -65,8 +63,6 @@ perr_t parse_i64(buffer_t *buf, data_t **ret)
     return PERR_INTEGER_UNDERFLOW;
   else if (i > INT60_MAX)
     return PERR_INTEGER_OVERFLOW;
-  else if (!isspace(*end) && !isblank(*end))
-    return PERR_EXPECTED_OPERAND;
 
   // Now find the distance, set the offset
   buf->cur += end - operand;
@@ -193,14 +189,16 @@ perr_t parse_line(buffer_t *buf, pres_t *res)
 
   // Find the end of operator
   size_t end_of_operator = strcspn(buf->data + buf->cur, " \n\0");
-  if (memcmp(buf->data + buf->cur, "noop", 4) == 0)
+  if (buffer_space_left(*buf) >= 4 &&
+      memcmp(buf->data + buf->cur, "noop", 4) == 0)
   {
     buf->cur += end_of_operator;
     res->type             = PRES_IMMEDIATE;
     res->immediate.opcode = OP_NONE;
     goto NO_OPERAND;
   }
-  else if (memcmp(buf->data + buf->cur, "halt", 4) == 0)
+  else if (buffer_space_left(*buf) >= 4 &&
+           memcmp(buf->data + buf->cur, "halt", 4) == 0)
   {
     buf->cur += end_of_operator;
     res->type             = PRES_IMMEDIATE;
@@ -208,7 +206,8 @@ perr_t parse_line(buffer_t *buf, pres_t *res)
     goto NO_OPERAND;
   }
   // Type based pushes
-  else if (memcmp(buf->data + buf->cur, "upush", 5) == 0)
+  else if (buffer_space_left(*buf) >= 5 &&
+           memcmp(buf->data + buf->cur, "upush", 5) == 0)
   {
     buf->cur += end_of_operator;
     buffer_seek_next(buf);
@@ -216,7 +215,8 @@ perr_t parse_line(buffer_t *buf, pres_t *res)
     res->immediate.opcode = OP_PUSH;
     return parse_u64(buf, &res->immediate.operand);
   }
-  else if (memcmp(buf->data + buf->cur, "ipush", 5) == 0)
+  else if (buffer_space_left(*buf) >= 5 &&
+           memcmp(buf->data + buf->cur, "ipush", 5) == 0)
   {
     buf->cur += end_of_operator;
     buffer_seek_next(buf);
@@ -224,7 +224,8 @@ perr_t parse_line(buffer_t *buf, pres_t *res)
     res->immediate.opcode = OP_PUSH;
     return parse_i64(buf, &res->immediate.operand);
   }
-  else if (memcmp(buf->data + buf->cur, "fpush", 5) == 0)
+  else if (buffer_space_left(*buf) >= 5 &&
+           memcmp(buf->data + buf->cur, "fpush", 5) == 0)
   {
     buf->cur += end_of_operator;
     buffer_seek_next(buf);
@@ -232,7 +233,8 @@ perr_t parse_line(buffer_t *buf, pres_t *res)
     res->immediate.opcode = OP_PUSH;
     return parse_f32(buf, &res->immediate.operand);
   }
-  else if (memcmp(buf->data + buf->cur, "bpush", 5) == 0)
+  else if (buffer_space_left(*buf) >= 5 &&
+           memcmp(buf->data + buf->cur, "bpush", 5) == 0)
   {
     buf->cur += end_of_operator;
     buffer_seek_next(buf);
@@ -240,7 +242,8 @@ perr_t parse_line(buffer_t *buf, pres_t *res)
     res->immediate.opcode = OP_PUSH;
     return parse_bool(buf, &res->immediate.operand);
   }
-  else if (memcmp(buf->data + buf->cur, "cpush", 5) == 0)
+  else if (buffer_space_left(*buf) >= 5 &&
+           memcmp(buf->data + buf->cur, "cpush", 5) == 0)
   {
     buf->cur += end_of_operator;
     buffer_seek_next(buf);
@@ -249,7 +252,8 @@ perr_t parse_line(buffer_t *buf, pres_t *res)
     return parse_char(buf, &res->immediate.operand);
   }
   // push = ipush
-  else if (memcmp(buf->data + buf->cur, "push", 4) == 0)
+  else if (buffer_space_left(*buf) >= 4 &&
+           memcmp(buf->data + buf->cur, "push", 4) == 0)
   {
     // Seek the operand
     buf->cur += end_of_operator;
@@ -258,21 +262,24 @@ perr_t parse_line(buffer_t *buf, pres_t *res)
     res->immediate.opcode = OP_PUSH;
     return parse_i64(buf, &res->immediate.operand);
   }
-  else if (memcmp(buf->data + buf->cur, "pop", 3) == 0)
+  else if (buffer_space_left(*buf) >= 3 &&
+           memcmp(buf->data + buf->cur, "pop", 3) == 0)
   {
     buf->cur += end_of_operator;
     res->type             = PRES_IMMEDIATE;
     res->immediate.opcode = OP_POP;
     goto NO_OPERAND;
   }
-  else if (memcmp(buf->data + buf->cur, "plus", 4) == 0)
+  else if (buffer_space_left(*buf) >= 4 &&
+           memcmp(buf->data + buf->cur, "plus", 4) == 0)
   {
     buf->cur += end_of_operator;
     res->type             = PRES_IMMEDIATE;
     res->immediate.opcode = OP_PLUS;
     goto NO_OPERAND;
   }
-  else if (memcmp(buf->data + buf->cur, "dup", 3) == 0)
+  else if (buffer_space_left(*buf) >= 3 &&
+           memcmp(buf->data + buf->cur, "dup", 3) == 0)
   {
     buf->cur += end_of_operator;
     buffer_seek_next(buf);
@@ -280,14 +287,16 @@ perr_t parse_line(buffer_t *buf, pres_t *res)
     res->immediate.opcode = OP_DUP;
     return parse_u64(buf, &res->immediate.operand);
   }
-  else if (memcmp(buf->data + buf->cur, "print", 5) == 0)
+  else if (buffer_space_left(*buf) >= 5 &&
+           memcmp(buf->data + buf->cur, "print", 5) == 0)
   {
     buf->cur += end_of_operator;
     res->type             = PRES_IMMEDIATE;
     res->immediate.opcode = OP_PRINT;
     goto NO_OPERAND;
   }
-  else if (memcmp(buf->data + buf->cur, "label", 5) == 0)
+  else if (buffer_space_left(*buf) >= 5 &&
+           memcmp(buf->data + buf->cur, "label", 5) == 0)
   {
     buf->cur += end_of_operator;
     buffer_seek_next(buf);
@@ -305,7 +314,8 @@ perr_t parse_line(buffer_t *buf, pres_t *res)
 
     return PERR_OK;
   }
-  else if (memcmp(buf->data + buf->cur, "jmp", 3) == 0)
+  else if (buffer_space_left(*buf) >= 3 &&
+           memcmp(buf->data + buf->cur, "jmp", 3) == 0)
   {
     // Jump must have an operand afterwards
     buf->cur += end_of_operator;
