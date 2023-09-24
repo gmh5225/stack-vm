@@ -8,6 +8,7 @@
 #include "../src/parser.h"
 #include "../src/vm.h"
 
+#include "./test-lexer.h"
 #include "./test-lib.h"
 #include "./test-op.h"
 #include "./test-parser.h"
