@@ -12,6 +12,7 @@ typedef enum OPCODE
   OP_HALT,
   OP_PLUS,
   OP_PRINT,
+  OP_POP,
 
   // Instructions with operands
   OP_PUSH,
@@ -29,6 +30,7 @@ typedef struct
 #define OP_CREATE_NOOP    ((op_t){.opcode = OP_NONE, .operand = data_nil()})
 #define OP_CREATE_HALT    ((op_t){.opcode = OP_HALT, .operand = data_nil()})
 #define OP_CREATE_PUSH(x) ((op_t){.opcode = OP_PUSH, .operand = x})
+#define OP_CREATE_POP     ((op_t){.opcode = OP_POP, .operand = data_nil()})
 #define OP_CREATE_PLUS    ((op_t){.opcode = OP_PLUS, .operand = data_nil()})
 #define OP_CREATE_DUP(x)  ((op_t){.opcode = OP_DUP, .operand = x})
 #define OP_CREATE_PRINT   ((op_t){.opcode = OP_PRINT, .operand = data_nil()})

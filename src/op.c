@@ -16,6 +16,9 @@ void op_print(op_t op, FILE *fp)
   case OP_HALT:
     fprintf(fp, "OP_HALT");
     break;
+  case OP_POP:
+    fprintf(fp, "OP_POP");
+    break;
   case OP_PUSH:
     fprintf(fp, "OP_PUSH(");
     data_print(op.operand, fp);
