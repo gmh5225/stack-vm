@@ -11,43 +11,44 @@
 
 void token_print(token_t t, FILE *fp)
 {
+  const char *type_cstr = "";
   switch (t.type)
   {
   case TOKEN_EOF:
-    fprintf(fp, "%s@(%lu,%lu): `%s`", "TOKEN_EOF", t.column, t.line, t.content);
+    type_cstr = "TOKEN_EOF";
+    break;
   case TOKEN_DOT:
+    type_cstr = "TOKEN_DOT";
     break;
-    fprintf(fp, "%s@(%lu,%lu): `%s`", "TOKEN_DOT", t.column, t.line, t.content);
   case TOKEN_DASH:
+    type_cstr = "TOKEN_DASH";
     break;
-    fprintf(fp, "%s@(%lu,%lu): `%s`", "TOKEN_DASH", t.column, t.line,
-            t.content);
     break;
   case TOKEN_COMMENT:
-    fprintf(fp, "%s@(%lu,%lu): `%s`", "TOKEN_COMMENT", t.column, t.line,
-            t.content);
+    type_cstr = "TOKEN_COMMENT";
     break;
   case TOKEN_WHITESPACE:
-    fprintf(fp, "%s@(%lu,%lu): `%s`", "TOKEN_WHITESPACE", t.column, t.line,
-            t.content);
+    type_cstr = "TOKEN_WHITESPACE";
     break;
   case TOKEN_SYMBOL:
-    fprintf(fp, "%s@(%lu,%lu): `%s`", "TOKEN_SYMBOL", t.column, t.line,
-            t.content);
+    type_cstr = "TOKEN_SYMBOL";
     break;
   case TOKEN_CHARACTER:
-    fprintf(fp, "%s@(%lu,%lu): `%s`", "TOKEN_CHARACTER", t.column, t.line,
-            t.content);
+    type_cstr = "TOKEN_CHARACTER";
     break;
   case TOKEN_NUMBER:
-    fprintf(fp, "%s@(%lu,%lu): `%s`", "TOKEN_NUMBER", t.column, t.line,
-            t.content);
+    type_cstr = "TOKEN_NUMBER";
     break;
   case TOKEN_OTHER:
-    fprintf(fp, "%s@(%lu,%lu): `%s`", "TOKEN_OTHER", t.column, t.line,
-            t.content);
+    type_cstr = "TOKEN_OTHER";
+    break;
+  default:
+    type_cstr = "TOKEN_UNKNOWN";
     break;
   }
+
+  fprintf(fp, "%s@(%lu,%lu)[size=%lu]: `%s`", type_cstr, t.column, t.line,
+          t.size, t.content);
 }
 
 void stream_print(stream_t *stream, FILE *fp)
