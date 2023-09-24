@@ -4,6 +4,12 @@
 #+date: 2023-09-21
 
 
+* TODO [#A] Write a lexer
+I've faced a ton of problems now with parsing just raw strings:
+parsing differing numerics, characters, etc.  A proper lexer would fix
+all of these issues: I can delegate to errors formed there instead of
+doing it at the parse stage, where I'm dealing with greater semantic
+issues.
 * TODO [#B] Write tests [0%] :TESTS:
 ** TODO [0%] Write tests for pointer tagging
 *** TODO [0%] Tests for constructors
