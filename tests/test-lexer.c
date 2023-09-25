@@ -94,3 +94,74 @@ bool test_tokenise_one_character(void)
 
   return test_eof & test_dot & test_dash;
 }
+
+bool test_tokenise_whitespace(void)
+{
+  const char *name = "*test-whitespace*";
+  buffer_t buffer  = {0};
+  stream_t stream  = {0};
+  // Test variety of whitespace
+  bool test_whitespace_variety = true;
+  {
+    const char *test_input = "    \n   \n\t\t     \r\f\n   \v";
+    buffer      = buffer_read_cstr(name, test_input, strlen(test_input));
+    lerr_t lerr = tokenise_buffer(&stream, &buffer);
+
+    printf("\t");
+    ASSERT(test_whitespace_variety_no_lerr, lerr == LERR_OK);
+
+    printf("\t");
+    ASSERT(test_whitespace_variety_only_whitespace,
+           stream.size == 2 && stream.tokens[0].type == TOKEN_WHITESPACE);
+
+    test_whitespace_variety = test_whitespace_variety_only_whitespace &
+                              test_whitespace_variety_no_lerr;
+
+    free(buffer.data);
+    stream_free(&stream);
+  }
+
+  // Test chunks of whitespace
+  bool test_whitespace_chunks = true;
+  {
+    const char *test_input =
+        "      \nthis-is-some-text     \nnext-chunk\n\t\tfinal-chunk";
+    buffer      = buffer_read_cstr(name, test_input, strlen(test_input));
+    lerr_t lerr = tokenise_buffer(&stream, &buffer);
+
+    printf("\t");
+    ASSERT(test_whitespace_chunks_no_lerr, lerr == LERR_OK);
+
+    printf("\t");
+    ASSERT(test_whitespace_chunks_seven_chunks, stream.size == 7);
+
+    printf("\t");
+    ASSERT(test_whitespace_chunks_first_token_is_whitespace,
+           stream.tokens[0].type == TOKEN_WHITESPACE);
+    ASSERT(test_whitespace_chunks_third_token_is_whitespace,
+           stream.tokens[2].type == TOKEN_WHITESPACE);
+    ASSERT(test_whitespace_chunks_fifth_token_is_whitespace,
+           stream.tokens[4].type == TOKEN_WHITESPACE);
+
+    printf("\t");
+    ASSERT(test_whitespace_chunks_first_whitespace_col_line,
+           stream.tokens[0].column == 0 && stream.tokens[0].line == 1);
+    ASSERT(test_whitespace_chunks_third_whitespace_col_line,
+           stream.tokens[2].column == 17 && stream.tokens[2].line == 2);
+    ASSERT(test_whitespace_chunks_fifth_whitespace_col_line,
+           stream.tokens[4].column == 10 && stream.tokens[4].line == 3);
+
+    test_whitespace_chunks = test_whitespace_chunks_no_lerr &
+                             test_whitespace_chunks_seven_chunks &
+                             test_whitespace_chunks_first_token_is_whitespace &
+                             test_whitespace_chunks_third_token_is_whitespace &
+                             test_whitespace_chunks_fifth_token_is_whitespace &
+                             test_whitespace_chunks_first_whitespace_col_line &
+                             test_whitespace_chunks_third_whitespace_col_line &
+                             test_whitespace_chunks_fifth_whitespace_col_line;
+
+    free(buffer.data);
+    stream_free(&stream);
+  }
+  return test_whitespace_variety & test_whitespace_chunks;
+}
