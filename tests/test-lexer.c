@@ -102,6 +102,7 @@ bool test_tokenise_whitespace(void)
   stream_t stream  = {0};
   // Test variety of whitespace
   bool test_whitespace_variety = true;
+  LOG_TEST_START(test_whitespace_variety);
   {
     const char *test_input = "    \n   \n\t\t     \r\f\n   \v";
     buffer      = buffer_read_cstr(name, test_input, strlen(test_input));
@@ -120,9 +121,11 @@ bool test_tokenise_whitespace(void)
     free(buffer.data);
     stream_free(&stream);
   }
+  LOG_TEST_STATUS(test_whitespace_variety, _);
 
   // Test chunks of whitespace
   bool test_whitespace_chunks = true;
+  LOG_TEST_START(test_whitespace_chunks);
   {
     const char *test_input =
         "      \nthis-is-some-text     \nnext-chunk\n\t\tfinal-chunk";
@@ -138,16 +141,20 @@ bool test_tokenise_whitespace(void)
     printf("\t");
     ASSERT(test_whitespace_chunks_first_token_is_whitespace,
            stream.tokens[0].type == TOKEN_WHITESPACE);
+    printf("\t");
     ASSERT(test_whitespace_chunks_third_token_is_whitespace,
            stream.tokens[2].type == TOKEN_WHITESPACE);
+    printf("\t");
     ASSERT(test_whitespace_chunks_fifth_token_is_whitespace,
            stream.tokens[4].type == TOKEN_WHITESPACE);
 
     printf("\t");
     ASSERT(test_whitespace_chunks_first_whitespace_col_line,
            stream.tokens[0].column == 0 && stream.tokens[0].line == 1);
+    printf("\t");
     ASSERT(test_whitespace_chunks_third_whitespace_col_line,
            stream.tokens[2].column == 17 && stream.tokens[2].line == 2);
+    printf("\t");
     ASSERT(test_whitespace_chunks_fifth_whitespace_col_line,
            stream.tokens[4].column == 10 && stream.tokens[4].line == 3);
 
@@ -163,6 +170,7 @@ bool test_tokenise_whitespace(void)
     free(buffer.data);
     stream_free(&stream);
   }
+  LOG_TEST_STATUS(test_whitespace_chunks, _);
   return test_whitespace_variety & test_whitespace_chunks;
 }
 
