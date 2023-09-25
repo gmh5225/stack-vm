@@ -8,6 +8,7 @@
 #include "../src/lexer.h"
 
 #include <assert.h>
+#include <string.h>
 
 bool test_tokenise_one_character(void)
 {
@@ -15,25 +16,27 @@ bool test_tokenise_one_character(void)
                 "test_tokenise_one_character is outdated");
 
   // Setting up mocks
-  const char *name = "test-tokenise";
+  const char *name = "*test-one-character*";
   stream_t stream  = {0};
   buffer_t buffer  = {0};
 
   // Test eof
   bool test_eof = true;
   {
-    buffer = buffer_read_cstr(name, "\0", 1);
-    tokenise_buffer(&stream, &buffer);
+    buffer      = buffer_read_cstr(name, "\0", 1);
+    lerr_t lerr = tokenise_buffer(&stream, &buffer);
 
     LOG_TEST_START(test_eof);
+    printf("\t");
+    ASSERT(test_eof_no_lerr, lerr == LERR_OK);
     printf("\t");
     ASSERT(test_eof_buffer_parsed, stream.size == 2);
     printf("\t");
     ASSERT(test_eof_lexeme_first_is_eof, stream.tokens[0].type == TOKEN_EOF);
     printf("\t");
     ASSERT(test_eof_lexeme_second_is_eof, stream.tokens[1].type == TOKEN_EOF);
-    test_eof = test_eof_buffer_parsed & test_eof_lexeme_first_is_eof &
-               test_eof_lexeme_second_is_eof;
+    test_eof = test_eof_no_lerr & test_eof_buffer_parsed &
+               test_eof_lexeme_first_is_eof & test_eof_lexeme_second_is_eof;
     LOG_TEST_STATUS(test_eof, test_eof_ *);
 
     free(buffer.data);
@@ -43,18 +46,20 @@ bool test_tokenise_one_character(void)
   // Test dot
   bool test_dot = true;
   {
-    buffer = buffer_read_cstr(name, ".", 1);
-    tokenise_buffer(&stream, &buffer);
+    buffer      = buffer_read_cstr(name, ".", 1);
+    lerr_t lerr = tokenise_buffer(&stream, &buffer);
 
     LOG_TEST_START(test_dot);
+    printf("\t");
+    ASSERT(test_dot_no_lerr, lerr == LERR_OK);
     printf("\t");
     ASSERT(test_dot_buffer_parsed, stream.size == 2);
     printf("\t");
     ASSERT(test_dot_lexeme_first_is_dot, stream.tokens[0].type == TOKEN_DOT);
     printf("\t");
     ASSERT(test_dot_lexeme_second_is_eof, stream.tokens[1].type == TOKEN_EOF);
-    test_dot = test_dot_buffer_parsed & test_dot_lexeme_first_is_dot &
-               test_dot_lexeme_second_is_eof;
+    test_dot = test_dot_no_lerr & test_dot_buffer_parsed &
+               test_dot_lexeme_first_is_dot & test_dot_lexeme_second_is_eof;
     LOG_TEST_STATUS(test_dot, test_dot_ *);
 
     free(buffer.data);
@@ -65,18 +70,20 @@ bool test_tokenise_one_character(void)
   bool test_dash = true;
   {
 
-    buffer = buffer_read_cstr(name, "-", 1);
-    tokenise_buffer(&stream, &buffer);
+    buffer      = buffer_read_cstr(name, "-", 1);
+    lerr_t lerr = tokenise_buffer(&stream, &buffer);
 
     LOG_TEST_START(test_dash);
+    printf("\t");
+    ASSERT(test_dash_no_lerr, lerr == LERR_OK);
     printf("\t");
     ASSERT(test_dash_buffer_parsed, stream.size == 2);
     printf("\t");
     ASSERT(test_dash_lexeme_first_is_dash, stream.tokens[0].type == TOKEN_DASH);
     printf("\t");
     ASSERT(test_dash_lexeme_second_is_eof, stream.tokens[1].type == TOKEN_EOF);
-    test_dash = test_dash_buffer_parsed & test_dash_lexeme_first_is_dash &
-                test_dash_lexeme_second_is_eof;
+    test_dash = test_dash_no_lerr & test_dash_buffer_parsed &
+                test_dash_lexeme_first_is_dash & test_dash_lexeme_second_is_eof;
     LOG_TEST_STATUS(test_dash, test_dash *);
 
     free(buffer.data);
