@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=-Wall -Wextra -Wpedantic -Wswitch-enum -ggdb -fsanitize=address -std=c11
 LIBS=-lm
 OBJECTS=src/lib.o src/lexer.o src/data.o src/op.o src/parser.o src/err.o src/vm.o
-TEST_OBJECTS=tests/test-lib.o tests/test-op.o tests/test-parser.o tests/test.o
+TEST_OBJECTS=tests/test-lib.o tests/test-op.o tests/test-lexer.o tests/test-parser.o tests/test.o
 ARGS=
 OUT=
 
