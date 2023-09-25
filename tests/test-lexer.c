@@ -165,3 +165,55 @@ bool test_tokenise_whitespace(void)
   }
   return test_whitespace_variety & test_whitespace_chunks;
 }
+
+bool test_tokenise_symbol(void)
+{
+  const char name[] = "*test-symbol*";
+  buffer_t buffer   = {0};
+  stream_t stream   = {0};
+
+  const char *test_input =
+      "this_is_a_symbol This-Is-Also-A-Symbol\nAnOThEr_SYmB-ol";
+  const char *expected_symbols[] = {"this_is_a_symbol", "This-Is-Also-A-Symbol",
+                                    "AnOThEr_SYmB-ol"};
+  buffer      = buffer_read_cstr(name, test_input, strlen(test_input));
+  lerr_t lerr = tokenise_buffer(&stream, &buffer);
+
+  ASSERT(test_symbol_no_lerr, lerr == LERR_OK);
+  ASSERT(test_symbol_expected_number_tokens, stream.size == 6);
+
+  ASSERT(test_symbol_first_is_symbol, stream.tokens[0].type == TOKEN_SYMBOL);
+  ASSERT(test_symbol_first_is_correct_symbol,
+         strncmp(stream.tokens[0].content, expected_symbols[0],
+                 stream.tokens[0].size) == 0);
+  ASSERT(test_symbol_first_in_correct_column, stream.tokens[0].column == 0);
+  ASSERT(test_symbol_first_in_correct_line, stream.tokens[0].line == 1);
+
+  ASSERT(test_symbol_third_is_symbol, stream.tokens[2].type == TOKEN_SYMBOL);
+  ASSERT(test_symbol_third_is_correct_symbol,
+         strncmp(stream.tokens[2].content, expected_symbols[1],
+                 stream.tokens[2].size) == 0);
+  ASSERT(test_symbol_third_in_correct_column, stream.tokens[2].column == 17);
+  ASSERT(test_symbol_third_in_correct_line, stream.tokens[2].line == 1);
+
+  ASSERT(test_symbol_fifth_is_symbol, stream.tokens[4].type == TOKEN_SYMBOL);
+  ASSERT(test_symbol_fifth_is_correct_symbol,
+         strncmp(stream.tokens[4].content, expected_symbols[2],
+                 stream.tokens[4].size) == 0);
+  ASSERT(test_symbol_fifth_in_correct_column, stream.tokens[4].column == 0);
+  ASSERT(test_symbol_fifth_in_correct_line, stream.tokens[4].line == 2);
+
+  free(buffer.data);
+  stream_free(&stream);
+
+  return test_symbol_no_lerr & test_symbol_expected_number_tokens &
+         test_symbol_first_is_symbol & test_symbol_first_is_correct_symbol &
+         test_symbol_third_is_symbol & test_symbol_third_is_correct_symbol &
+         test_symbol_fifth_is_symbol & test_symbol_fifth_is_correct_symbol &
+         test_symbol_first_in_correct_column &
+         test_symbol_first_in_correct_line &
+         test_symbol_third_in_correct_column &
+         test_symbol_third_in_correct_line &
+         test_symbol_fifth_in_correct_column &
+         test_symbol_fifth_in_correct_line;
+}
