@@ -118,10 +118,6 @@ lerr_t tokenise_buffer(stream_t *stream, buffer_t *buffer)
       token = token_create(TOKEN_DOT, column, line, &c, 1);
       ++column;
       break;
-    case '-':
-      token = token_create(TOKEN_DASH, column, line, &c, 1);
-      ++column;
-      break;
     case '#': {
       // Figure out the size of our comment (until newline or eof)
       size_t comment_size = 0;
@@ -217,6 +213,12 @@ lerr_t tokenise_buffer(stream_t *stream, buffer_t *buffer)
         buffer->cur += i;
         break;
       }
+      else if (c == '-' &&
+               (isspace(buffer_peek(*buffer)) || buffer_peek(*buffer) == 0))
+      {
+        token = token_create(TOKEN_DASH, column, line, &c, 1);
+        ++column;
+      }
       // Number parsers
       else if (isdigit(c) || (c == '-' && isdigit(buffer_peek(*buffer))))
       {
@@ -233,7 +235,8 @@ lerr_t tokenise_buffer(stream_t *stream, buffer_t *buffer)
         column += number_size + 1;
         buffer->cur += number_size;
       }
-      else if (strchr(LEXER_SYMBOL_ACCEPTED, c))
+      else if (strchr(LEXER_SYMBOL_ACCEPTED, c) &&
+               strchr(LEXER_SYMBOL_ACCEPTED, buffer_peek(*buffer)))
       {
         size_t symbol_size = 0;
         for (char symbol_char = buffer_peek(*buffer);
