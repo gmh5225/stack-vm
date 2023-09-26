@@ -158,7 +158,7 @@ lerr_t tokenise_buffer(stream_t *stream, buffer_t *buffer)
       token = token_create(TOKEN_DOT, column, line, &c, 1);
       ++column;
       break;
-    case '#': {
+    case ';': {
       // Figure out the size of our comment (until newline or eof)
       size_t comment_size = 0;
       for (char comment_char = buffer->data[buffer->cur + comment_size];
