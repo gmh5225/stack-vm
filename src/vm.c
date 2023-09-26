@@ -67,7 +67,7 @@ err_t vm_execute(vm_t *vm)
     vm->sptr++;
     vm->iptr++;
     break;
-  case OP_PLUS:
+  case OP_PLUS: {
     if (vm->sptr < 2)
       return ERR_STACK_UNDERFLOW;
     data_t *a = vm->stack[vm->sptr - 2];
@@ -84,7 +84,7 @@ err_t vm_execute(vm_t *vm)
     // Check if float (if so, just add now)
     if (a_ == DATA_FLOAT)
     {
-      vm->stack[vm->sptr - 2] = data_float(data_as_float(a) * data_as_float(b));
+      vm->stack[vm->sptr - 2] = data_float(data_as_float(a) + data_as_float(b));
     }
     else if ((a_ == DATA_INT && b_ == DATA_UINT) ||
              (a_ == DATA_UINT && b_ == DATA_INT))
