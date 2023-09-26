@@ -15,9 +15,6 @@
 #define TERM_CYAN  "\x1b[36m"
 #define TERM_RESET "\x1b[0m"
 
-// memcpy respects endianness of machine, so no choice here :(
-/* #define IS_BIG_ENDIAN 0 */
-
 #define MAX(a, b)   ((a) > (b) ? (a) : (b))
 #define MIN(a, b)   ((a) > (b) ? (b) : (a))
 #define ARR_SIZE(x) (sizeof(x) / sizeof(x[0]))

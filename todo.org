@@ -4,6 +4,14 @@
 #+date: 2023-09-21
 
 
+* TODO [#A] Write a lexer
+I've faced a ton of problems now with parsing just raw strings:
+parsing differing numerics, characters, etc.  A proper lexer would fix
+all of these issues: I can delegate to errors formed there instead of
+doing it at the parse stage, where I'm dealing with greater semantic
+issues.
+** DONE Implement a lexer
+** TODO Plug in lexer to parser
 * TODO [#B] Write tests [0%] :TESTS:
 ** TODO [0%] Write tests for pointer tagging
 *** TODO [0%] Tests for constructors
@@ -27,16 +35,12 @@
 *** TODO Test data_type_bytecode_size
 *** TODO Test data_write
 *** TODO Test data_read
-** TODO [75%] Write tests for parser
+** TODO [0%] Write tests for parser
 [[file:tests/test-parser.c]]
-*** DONE Complete test_parse_line
+*** TODO Test parse_line
 + Test whitespace inclusion
 [[file:tests/test-parser.c::bool test_parse_line(void)]]
-*** DONE Test parse_i64
-[[file:src/parser.c::perr_t parse_i64(buffer_t *buf, i64 *ret)]]
-*** DONE Test parse_line
-[[file:src/parser.c::perr_t parse_line(buffer_t *buf, pres_t *res)]]
-*** TODO Test parse_buffer
+*** TODO Test parse_stream
 [[file:src/parser.c::perr_t parse_buffer(buffer_t *buf, op_t **instructions,]]
 ** TODO [0%] Write tests for virtual machine implementation
 In particular the assembler and interpreter routines.
@@ -47,9 +51,10 @@ In particular the assembler and interpreter routines.
 *** TODO Test vm_copy_program
 *** TODO Test vm_write_program
 *** TODO Test vm_read_program
+** DONE Write tests for lexer
 * TODO [#C] Optimise processor for parse results
 [[file:src/parser.c::perr_t process_presults(pres_t *results, size_t
-results_size, buffer_t *buffer,]]
+results_size, stream_t *stream,]]
 * Completed
 ** DONE Rewrite simple execution control (OP_JUMP) [100%] :PARSER:BYTECODE:
 Previous implementation had separate instructions for jumping
