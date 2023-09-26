@@ -9,6 +9,7 @@
 
 #define DEBUG   0
 #define VERBOSE 0
+#define TYPES   0
 
 #define TERM_RED   "\x1b[31m"
 #define TERM_GREEN "\x1b[32m"
