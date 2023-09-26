@@ -293,6 +293,28 @@ void stream_seek_next(stream_t *stream)
     continue;
 }
 
+token_t stream_peek(stream_t *stream)
+{
+  if (stream->cursor > stream->size)
+    return (token_t){.type    = TOKEN_OTHER,
+                     .content = NULL,
+                     .size    = 0,
+                     .column  = 0,
+                     .line    = 0};
+  return stream->tokens[stream->cursor];
+}
+
+token_t stream_pop(stream_t *stream)
+{
+  if (stream->cursor > stream->size)
+    return (token_t){.type    = TOKEN_OTHER,
+                     .content = NULL,
+                     .size    = 0,
+                     .column  = 0,
+                     .line    = 0};
+  return stream->tokens[stream->cursor++];
+}
+
 void stream_free(stream_t *stream)
 {
   for (size_t i = 0; i < stream->size; ++i)
