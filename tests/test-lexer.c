@@ -390,3 +390,71 @@ bool test_tokenise_number(void)
 
   return test_integral_values & test_floating_point_values;
 }
+
+bool test_tokenise_comments(void)
+{
+  const char *name = "test-comments";
+  buffer_t buffer  = {0};
+  stream_t stream  = {0};
+
+  bool test_comment_doc_string = true;
+  LOG_TEST_START(test_comment_doc_string);
+  {
+
+    const char *input = "#this is a comment\n"
+                        "# another comment with    a    lot   of   space";
+
+    const char *expected_comments[] = {
+        "this is a comment", " another comment with    a    lot   of   space"};
+
+    buffer      = buffer_read_cstr(name, input, strlen(input));
+    lerr_t lerr = tokenise_buffer(&stream, &buffer);
+    printf("\t");
+    ASSERT(test_comment_doc_string_no_lerr, lerr == LERR_OK);
+    test_comment_doc_string &= test_comment_doc_string_no_lerr;
+    for (size_t i = 0, j = 0; i < stream.size; i += 2, ++j)
+    {
+      printf("\t");
+      ASSERT(test_ith_comment_doc_string,
+             strncmp(stream.tokens[i].content, expected_comments[j],
+                     stream.tokens[i].size) == 0);
+      test_comment_doc_string &= test_ith_comment_doc_string;
+    }
+
+    free(buffer.data);
+    stream_free(&stream);
+  }
+  LOG_TEST_STATUS(test_comment_doc_string, _);
+
+  bool test_comment_inline = true;
+  LOG_TEST_START(test_comment_inline);
+  {
+    const char *input               = "a-symbol#with a comment\n"
+                                      "2000 #a number with a comment\n"
+                                      "push 10 # push 10 onto the stack\n";
+    const char *expected_comments[] = {
+        "with a comment", "a number with a comment", " push 10 onto the stack"};
+
+    buffer      = buffer_read_cstr(name, input, strlen(input));
+    lerr_t lerr = tokenise_buffer(&stream, &buffer);
+    ASSERT(test_comment_inline_no_lerr, lerr == LERR_OK);
+    test_comment_inline &= test_comment_inline_no_lerr;
+
+    for (size_t i = 0, j = 0; i < stream.size; ++i)
+    {
+      if (stream.tokens[i].type == TOKEN_COMMENT)
+      {
+        printf("\t");
+        ASSERT(test_ith_comment_inline,
+               strncmp(stream.tokens[i].content, expected_comments[j++],
+                       stream.tokens[i].size) == 0);
+        test_comment_inline &= test_ith_comment_inline;
+      }
+    }
+
+    free(buffer.data);
+    stream_free(&stream);
+  }
+  LOG_TEST_STATUS(test_comment_inline, _);
+  return test_comment_doc_string & test_comment_inline;
+}

@@ -9,7 +9,6 @@ bool test_tokenise_symbol(void);
 bool test_tokenise_character(void);
 bool test_tokenise_number(void);
 bool test_tokenise_comments(void);
-bool test_tokenise_errors(void);
 
 static const test_t TEST_LEXER_SUITE[] = {
     CREATE_TEST(test_tokenise_one_character),
@@ -17,7 +16,6 @@ static const test_t TEST_LEXER_SUITE[] = {
     CREATE_TEST(test_tokenise_symbol),
     CREATE_TEST(test_tokenise_character),
     CREATE_TEST(test_tokenise_number),
-    /* CREATE_TEST(test_tokenise_comments), */
-    /* CREATE_TEST(test_tokenise_errors), */
+    CREATE_TEST(test_tokenise_comments),
 };
 #endif
