@@ -244,7 +244,7 @@ perr_t parse_jmp(stream_t *stream, pres_t *res)
   // Assume we're at an operand
   token_t token = stream_peek(stream);
 
-  // There are 3 cases: absolute, relative and label
+  // There are 4 cases: absolute, relative, stack and label
   if (token.type == TOKEN_NUMBER)
   {
     res->type             = PRES_IMMEDIATE;
@@ -256,6 +256,14 @@ perr_t parse_jmp(stream_t *stream, pres_t *res)
     res->type = PRES_JUMP_RELATIVE;
     stream_pop(stream);
     return parse_i64(stream, &res->relative_jump_operand);
+  }
+  else if (token.type == TOKEN_HAT)
+  {
+    // Stack based -> Using a nil for the operand
+    res->type = PRES_IMMEDIATE;
+    stream_pop(stream);
+    res->immediate.opcode  = OP_JUMP;
+    res->immediate.operand = data_nil();
   }
   else if (token.type == TOKEN_SYMBOL)
   {
