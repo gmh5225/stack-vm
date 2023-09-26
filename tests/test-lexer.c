@@ -225,3 +225,78 @@ bool test_tokenise_symbol(void)
          test_symbol_fifth_in_correct_column &
          test_symbol_fifth_in_correct_line;
 }
+
+bool test_tokenise_character(void)
+{
+  const char name[] = "*test-character*";
+  buffer_t buffer   = {0};
+  stream_t stream   = {0};
+
+  bool test_character_escape = true;
+  LOG_TEST_START(test_character_escape);
+  {
+    const char *test_input = "'\\n' '\\t' '\\r' '\\v' '\\f'";
+    const char expected[]  = {'\n', '\t', '\r', '\v', '\f'};
+    buffer      = buffer_read_cstr(name, test_input, strlen(test_input));
+    lerr_t lerr = tokenise_buffer(&stream, &buffer);
+
+    printf("\t");
+    ASSERT(test_escape_no_lerr, lerr == LERR_OK);
+    printf("\t");
+    ASSERT(test_escape_expected_number, stream.size == ARR_SIZE(expected) * 2);
+    bool test_escape_expected_escapes = true;
+    for (size_t i = 0, j = 0; i < stream.size; i += 2, j += 1)
+    {
+      printf("\t\t");
+      ASSERT(test_ith_escape_type, stream.tokens[i].type == TOKEN_CHARACTER);
+      printf("\t\t");
+      ASSERT(test_ith_escape_expected_literal,
+             stream.tokens[i].content[0] == expected[j]);
+
+      test_escape_expected_escapes *=
+          test_ith_escape_type & test_ith_escape_expected_literal;
+    }
+
+    free(buffer.data);
+    stream_free(&stream);
+
+    test_character_escape = test_escape_no_lerr & test_escape_expected_number &
+                            test_escape_expected_escapes;
+  }
+  LOG_TEST_STATUS(test_character_escape, _);
+
+  bool test_character_general = true;
+  LOG_TEST_START(test_character_general);
+  {
+    const char *test_input = "'a' 'z' 'A' 'Z' '0' '9' '~'";
+    const char expected[]  = {'a', 'z', 'A', 'Z', '0', '9', '~'};
+    buffer      = buffer_read_cstr(name, test_input, strlen(test_input));
+    lerr_t lerr = tokenise_buffer(&stream, &buffer);
+
+    printf("\t");
+    ASSERT(test_general_no_lerr, lerr == LERR_OK);
+    printf("\t");
+    ASSERT(test_general_expected_number, stream.size == ARR_SIZE(expected) * 2);
+    bool test_general_expected_characters = true;
+    for (size_t i = 0, j = 0; i < stream.size; i += 2, j += 1)
+    {
+      printf("\t\t");
+      ASSERT(test_ith_general_type, stream.tokens[i].type == TOKEN_CHARACTER);
+      printf("\t\t");
+      ASSERT(test_ith_general_expected_literal,
+             stream.tokens[i].content[0] == expected[j]);
+
+      test_general_expected_characters *=
+          test_ith_general_type & test_ith_general_expected_literal;
+    }
+
+    free(buffer.data);
+    stream_free(&stream);
+
+    test_character_general = test_general_no_lerr &
+                             test_general_expected_number &
+                             test_general_expected_characters;
+  }
+  LOG_TEST_STATUS(test_character_general, _);
+  return test_character_escape & test_character_general;
+}
