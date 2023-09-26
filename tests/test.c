@@ -94,12 +94,15 @@ int main(void)
   puts("----------------------------------------------------------------");
   bool op_passed = run_test_suite("OP", TEST_OP_SUITE, ARR_SIZE(TEST_OP_SUITE));
   puts("----------------------------------------------------------------");
+  bool lexer_passed =
+      run_test_suite("LEXER", TEST_LEXER_SUITE, ARR_SIZE(TEST_LEXER_SUITE));
+  puts("----------------------------------------------------------------");
   /* bool parser_passed = */
   /*     run_test_suite("PARSER", TEST_PARSER_SUITE,
    * ARR_SIZE(TEST_PARSER_SUITE)); */
   /* puts("----------------------------------------------------------------");
    */
-  if (lib_passed && op_passed)
+  if (lib_passed && op_passed && lexer_passed)
     return 0;
   else
     return 1;
