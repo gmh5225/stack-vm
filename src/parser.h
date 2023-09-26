@@ -49,15 +49,16 @@ typedef struct
   {
     PRES_IMMEDIATE,
     PRES_JUMP_RELATIVE,
-    PRES_LABEL,
     PRES_JUMP_LABEL,
+    PRES_LABEL,
+    PRES_IPTR,
   } type;
 
   union
   {
     op_t immediate;
     char *label_name;
-    data_t *relative_jump_operand;
+    data_t *operand;
   };
 } pres_t;
 

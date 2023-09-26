@@ -144,11 +144,11 @@ err_t vm_execute(vm_t *vm)
     break;
   case OP_JUMP: {
     data_t *operand = op.operand;
-    if (operand == data_nil())
+    if (data_type(operand) == DATA_NIL)
     {
-      if (vm->sptr < 0)
+      if (vm->sptr == 0)
         return ERR_STACK_UNDERFLOW;
-      operand = vm->stack[vm->sptr--];
+      operand = vm->stack[vm->sptr - 1];
     }
     data_type_t type = data_type(operand);
 
@@ -156,7 +156,10 @@ err_t vm_execute(vm_t *vm)
       return ERR_ILLEGAL_TYPE;
     else if (data_as_uint(operand) > vm->size_program)
       return ERR_ILLEGAL_JUMP;
+
     vm->iptr = data_as_uint(operand);
+    if (data_type(op.operand) == DATA_NIL)
+      vm->sptr--;
     break;
   }
   case NUMBER_OF_OPERATORS:
@@ -202,8 +205,7 @@ void vm_write_program(vm_t *vm, FILE *fp)
       byte bytecode[size];
 
       bytecode[0] = vm->program[i].opcode;
-      if (vm->program[i].opcode >= OP_PUSH)
-        data_write(vm->program[i].operand, bytecode + 1);
+      data_write(vm->program[i].operand, bytecode + 1);
 
       darr_mem_append(&bytes, (byte *)bytecode, size);
     }
@@ -214,7 +216,7 @@ void vm_write_program(vm_t *vm, FILE *fp)
     }
 
 #if VERBOSE == 1
-    printf(" %lu bytes\n", size + 1);
+    printf(" %lu %s\n", size, size == 1 ? "byte" : "bytes");
 #endif
   }
   fwrite(bytes.data, sizeof(byte), bytes.used, fp);
@@ -262,7 +264,7 @@ err_t read_type_from_bytes(buffer_t *buffer, data_type_t type, op_t *ret)
 err_t read_immediate_from_bytes(buffer_t *buffer, op_t *ret)
 {
   byte tag = buffer_pop(buffer);
-  if (!(tag <= DATA_FLOAT && tag >= DATA_NIL))
+  if (tag > DATA_FLOAT)
     return ERR_ILLEGAL_TYPE;
   else if (tag == DATA_NIL)
   {
@@ -286,7 +288,7 @@ err_t vm_read_program(vm_t *vm, buffer_t *buffer)
 #if VERBOSE == 1
   size_t prev_bytes = 0;
 #endif
-  while (j < VM_PROGRAM_MAX && buffer_at_end(*buffer) != BUFFER_PAST_END)
+  while (j < VM_PROGRAM_MAX && buffer_at_end(*buffer) == BUFFER_OK)
   {
 #if VERBOSE == 1
     prev_bytes = buffer->cur;
@@ -339,10 +341,18 @@ err_t vm_read_program(vm_t *vm, buffer_t *buffer)
     }
     case OP_JUMP: {
       vm->program[j].opcode = OP_JUMP;
-      err_t err_read_type =
-          read_type_from_bytes(buffer, DATA_UINT, vm->program + (j++));
-      if (err_read_type != ERR_OK)
-        return err_read_type;
+      if (buffer_peek(*buffer) == DATA_NIL)
+      {
+        buffer_pop(buffer);
+        vm->program[j++].operand = data_nil();
+      }
+      else
+      {
+        err_t err_read_type =
+            read_type_from_bytes(buffer, DATA_UINT, vm->program + (j++));
+        if (err_read_type != ERR_OK)
+          return err_read_type;
+      }
       break;
     }
     case NUMBER_OF_OPERATORS:

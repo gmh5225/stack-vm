@@ -188,9 +188,6 @@ perr_t parse_push(stream_t *stream, pres_t *res)
     return PERR_EOF;
   // Assume we're at an operand
   token_t token = stream_peek(stream);
-  if (!(token.type == TOKEN_NUMBER || token.type == TOKEN_CHARACTER ||
-        token.type == TOKEN_SYMBOL))
-    return PERR_EXPECTED_OPERAND;
 
   res->type             = PRES_IMMEDIATE;
   res->immediate.opcode = OP_PUSH;
@@ -204,7 +201,16 @@ perr_t parse_push(stream_t *stream, pres_t *res)
       return parse_bool(stream, &res->immediate.operand);
     return parse_nil(stream, &res->immediate.operand);
   }
-  return PERR_EXPECTED_NUMBER;
+  else if (token.type == TOKEN_STAR)
+  {
+    res->type              = PRES_IPTR;
+    res->immediate.operand = data_nil();
+    stream_pop(stream);
+    if (stream_peek(stream).type == TOKEN_NUMBER)
+      return parse_u64(stream, &res->immediate.operand);
+    return PERR_OK;
+  }
+  return PERR_EXPECTED_OPERAND;
 }
 
 perr_t parse_dup(stream_t *stream, pres_t *res)
@@ -255,15 +261,16 @@ perr_t parse_jmp(stream_t *stream, pres_t *res)
   {
     res->type = PRES_JUMP_RELATIVE;
     stream_pop(stream);
-    return parse_i64(stream, &res->relative_jump_operand);
+    return parse_i64(stream, &res->operand);
   }
-  else if (token.type == TOKEN_HAT)
+  else if (token.type == TOKEN_STAR)
   {
     // Stack based -> Using a nil for the operand
     res->type = PRES_IMMEDIATE;
     stream_pop(stream);
     res->immediate.opcode  = OP_JUMP;
     res->immediate.operand = data_nil();
+    return PERR_OK;
   }
   else if (token.type == TOKEN_SYMBOL)
   {
@@ -394,7 +401,7 @@ perr_t process_presults(pres_t *results, size_t results_size, stream_t *stream,
     else if (res.type == PRES_JUMP_RELATIVE)
     {
       // Get absolute program address
-      i64 addr     = data_as_int(res.relative_jump_operand);
+      i64 addr     = data_as_int(res.operand);
       i64 abs_addr = program_size + addr;
       if (abs_addr < 0)
       {
@@ -412,6 +419,17 @@ perr_t process_presults(pres_t *results, size_t results_size, stream_t *stream,
       struct LabelPair pair = {res.label_name, program_size};
       DARR_APP(&labels, struct LabelPair, pair);
     }
+    else if (res.type == PRES_IPTR)
+    {
+      // This means it wants the operand of res.immediate to be the
+      // next instruction pointer (as a uint)
+      u64 iptr         = program_size + 1;
+      data_type_t type = data_type(res.immediate.operand);
+      if (type == DATA_UINT)
+        iptr += data_as_uint(res.immediate.operand);
+      (results + i)->immediate.operand = data_uint(iptr);
+      ++program_size;
+    }
   }
 
   darr_init(output, program_size, sizeof(op_t));
@@ -421,7 +439,7 @@ perr_t process_presults(pres_t *results, size_t results_size, stream_t *stream,
     pres_t res = results[i];
     if (res.type == PRES_LABEL)
       continue;
-    else if (res.type == PRES_IMMEDIATE)
+    else if (res.type == PRES_IMMEDIATE || res.type == PRES_IPTR)
     {
       DARR_APP(output, op_t, res.immediate);
     }
