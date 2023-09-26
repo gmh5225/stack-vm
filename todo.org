@@ -10,6 +10,8 @@ parsing differing numerics, characters, etc.  A proper lexer would fix
 all of these issues: I can delegate to errors formed there instead of
 doing it at the parse stage, where I'm dealing with greater semantic
 issues.
+** DONE Implement a lexer
+** TODO Plug in lexer to parser
 * TODO [#B] Write tests [0%] :TESTS:
 ** TODO [0%] Write tests for pointer tagging
 *** TODO [0%] Tests for constructors
@@ -53,6 +55,7 @@ In particular the assembler and interpreter routines.
 *** TODO Test vm_copy_program
 *** TODO Test vm_write_program
 *** TODO Test vm_read_program
+** DONE Write tests for lexer
 * TODO [#C] Optimise processor for parse results
 [[file:src/parser.c::perr_t process_presults(pres_t *results, size_t
 results_size, buffer_t *buffer,]]
