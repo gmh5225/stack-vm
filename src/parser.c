@@ -337,6 +337,13 @@ perr_t parse_line(stream_t *stream, pres_t *res)
     res->immediate.opcode = OP_PLUS;
     goto NO_OPERAND;
   }
+  else if (token.size >= 4 && memcmp(token.content, "mult", 4) == 0)
+  {
+    stream_pop(stream);
+    res->type             = PRES_IMMEDIATE;
+    res->immediate.opcode = OP_MULT;
+    goto NO_OPERAND;
+  }
   else if (token.size >= 3 && memcmp(token.content, "dup", 3) == 0)
   {
     stream_pop(stream);

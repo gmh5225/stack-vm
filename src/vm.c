@@ -125,6 +125,66 @@ err_t vm_execute(vm_t *vm)
     vm->sptr--;
     vm->iptr++;
     break;
+  }
+  case OP_MULT: {
+    if (vm->sptr < 2)
+      return ERR_STACK_UNDERFLOW;
+    data_t *a = vm->stack[vm->sptr - 2];
+    data_t *b = vm->stack[vm->sptr - 1];
+
+    data_type_t a_ = data_type(a);
+    data_type_t b_ = data_type(b);
+
+    if (!(data_type_is_numeric(a_) && data_type_is_numeric(b_)))
+      return ERR_ILLEGAL_TYPE;
+
+    data_numerics_promote_on_float(&a, &a_, &b, &b_);
+
+    // Check if float (if so, just add now)
+    if (a_ == DATA_FLOAT)
+    {
+      vm->stack[vm->sptr - 2] = data_float(data_as_float(a) * data_as_float(b));
+    }
+    else if ((a_ == DATA_INT && b_ == DATA_UINT) ||
+             (a_ == DATA_UINT && b_ == DATA_INT))
+    {
+      u64 c = data_as_uint(a_ == DATA_INT ? b : a);
+      i64 d = data_as_int(a_ == DATA_INT ? a : b);
+      if (d > 0 && (c > (UINT60_MAX / d)))
+        // Integer overflow
+        return ERR_INTEGER_OVERFLOW;
+      // Cast to integer
+      else if (d < 0)
+        vm->stack[vm->sptr - 2] = data_int(c * d);
+      else
+        // Cast to unsigned
+        vm->stack[vm->sptr - 2] = data_uint(c * d);
+    }
+    else if (a_ == DATA_INT)
+    {
+      i64 c = data_as_int(a);
+      i64 d = data_as_int(b);
+
+      if (c > 0 && (d > (INT60_MAX / c)))
+        return ERR_INTEGER_OVERFLOW;
+      else if (c < 0 && d < (INT60_MIN / c))
+        return ERR_INTEGER_UNDERFLOW;
+      vm->stack[vm->sptr - 2] = data_int(c * d);
+    }
+    else
+    {
+      u64 c = data_as_uint(a);
+      u64 d = data_as_uint(b);
+
+      if (d > (INT64_MAX / c))
+        return ERR_INTEGER_OVERFLOW;
+      vm->stack[vm->sptr - 2] = data_uint(c * d);
+    }
+
+    vm->sptr--;
+    vm->iptr++;
+    break;
+  }
   case OP_DUP:
     if (vm->sptr == 0)
       return ERR_STACK_UNDERFLOW;
@@ -323,6 +383,11 @@ err_t vm_read_program(vm_t *vm, buffer_t *buffer)
     }
     case OP_PLUS: {
       vm->program[j].opcode    = OP_PLUS;
+      vm->program[j++].operand = data_nil();
+      break;
+    }
+    case OP_MULT: {
+      vm->program[j].opcode    = OP_MULT;
       vm->program[j++].operand = data_nil();
       break;
     }

@@ -27,6 +27,9 @@ void op_print(op_t op, FILE *fp)
   case OP_PLUS:
     fprintf(fp, "OP_PLUS");
     break;
+  case OP_MULT:
+    fprintf(fp, "OP_MULT");
+    break;
   case OP_DUP:
     fprintf(fp, "OP_DUP(");
     data_print(op.operand, fp);
