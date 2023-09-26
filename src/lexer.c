@@ -284,6 +284,15 @@ lerr_t tokenise_buffer(stream_t *stream, buffer_t *buffer)
   return LERR_OK;
 }
 
+void stream_seek_next(stream_t *stream)
+{
+  for (; stream->cursor < stream->size &&
+         (stream->tokens[stream->cursor].type == TOKEN_WHITESPACE ||
+          stream->tokens[stream->cursor].type == TOKEN_COMMENT);
+       ++stream->cursor)
+    continue;
+}
+
 void stream_free(stream_t *stream)
 {
   for (size_t i = 0; i < stream->size; ++i)

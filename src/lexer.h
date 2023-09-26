@@ -53,6 +53,7 @@ typedef struct
 
 lerr_t tokenise_buffer(stream_t *stream, buffer_t *buffer);
 void stream_print(stream_t *, FILE *);
+void stream_seek_next(stream_t *);
 void stream_free(stream_t *);
 
 #endif
