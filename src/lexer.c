@@ -138,7 +138,7 @@ lerr_t tokenise_buffer(stream_t *stream, buffer_t *buffer)
     }
     case '\'': {
       // This may be a character literal
-      if (buffer_peek(*buffer) == '\\')
+      if (buffer_peek(*buffer) == '\\' && buffer->data[buffer->cur + 2] == '\'')
       {
         // Escape sequence parsing
         char escaped = 0;
@@ -168,6 +168,7 @@ lerr_t tokenise_buffer(stream_t *stream, buffer_t *buffer)
         }
         token = token_create(TOKEN_CHARACTER, column, line, &escaped, 1);
         column += 4;
+        buffer->cur += 3;
       }
       else
       {
@@ -180,7 +181,7 @@ lerr_t tokenise_buffer(stream_t *stream, buffer_t *buffer)
         }
 
         token = token_create(TOKEN_CHARACTER, column, line,
-                             buffer->data + buffer->cur - 1, 3);
+                             buffer->data + buffer->cur, 1);
         buffer->cur += 2;
         column += 3;
       }
@@ -266,9 +267,7 @@ lerr_t tokenise_buffer(stream_t *stream, buffer_t *buffer)
 void stream_free(stream_t *stream)
 {
   for (size_t i = 0; i < stream->size; ++i)
-  {
     free(stream->tokens[i].content);
-  }
   free(stream->tokens);
   *stream = (stream_t){0};
 }
