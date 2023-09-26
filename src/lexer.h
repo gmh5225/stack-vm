@@ -11,6 +11,8 @@ typedef enum
   LERR_OK
 } lerr_t;
 
+const char *lerr_as_cstr(lerr_t);
+
 typedef enum
 {
   TOKEN_EOF = 0,

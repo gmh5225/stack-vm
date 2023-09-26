@@ -9,6 +9,23 @@
 #include <ctype.h>
 #include <string.h>
 
+const char *lerr_as_cstr(lerr_t lerr)
+{
+  switch (lerr)
+  {
+  case LERR_CHAR_UNRECOGNISED_ESCAPE:
+    return "LERR_CHAR_UNRECOGNISED_ESCAPE";
+  case LERR_CHAR_WRONG_SIZE:
+    return "LERR_CHAR_WRONG_SIZE";
+  case LERR_UNRECOGNISED_TOKEN:
+    return "LERR_UNRECOGNISED_TOKEN";
+  case LERR_OK:
+    return "LERR_OK";
+  default:
+    return "";
+  }
+}
+
 void token_print(token_t t, FILE *fp)
 {
   const char *type_cstr = "";
@@ -123,11 +140,11 @@ lerr_t tokenise_buffer(stream_t *stream, buffer_t *buffer)
       size_t comment_size = 0;
       for (char comment_char = buffer->data[buffer->cur + comment_size];
            comment_size < buffer_space_left(*buffer) &&
-           !(isspace(comment_char) || comment_char != '\0');
+           !(comment_char == '\n' || comment_char == '\0');
            comment_char = buffer->data[buffer->cur + (++comment_size)])
         continue;
       token = token_create(TOKEN_COMMENT, column, line,
-                           buffer->data + buffer->cur - 1, comment_size + 1);
+                           buffer->data + buffer->cur, comment_size);
       column += comment_size + 1;
       buffer->cur += comment_size;
       break;
@@ -241,7 +258,7 @@ lerr_t tokenise_buffer(stream_t *stream, buffer_t *buffer)
         size_t symbol_size = 0;
         for (char symbol_char = buffer_peek(*buffer);
              symbol_size < buffer_space_left(*buffer) &&
-             !(isspace(symbol_char) || symbol_char == '\0');
+             strchr(LEXER_SYMBOL_ACCEPTED, symbol_char);
              symbol_char = buffer->data[buffer->cur + (++symbol_size)])
           continue;
         token = token_create(TOKEN_SYMBOL, column, line,
