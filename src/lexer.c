@@ -80,6 +80,13 @@ token_t token_create(token_type_t type, size_t col, size_t line, char *str,
   return token;
 }
 
+void free_arr_of_tokens(token_t *tokens, size_t number)
+{
+  for (size_t i = 0; i < number; ++i)
+    if (tokens[i].content)
+      free(tokens[i].content);
+}
+
 lerr_t tokenise_buffer(stream_t *stream, buffer_t *buffer)
 {
   stream->name   = buffer->name;
@@ -141,7 +148,9 @@ lerr_t tokenise_buffer(stream_t *stream, buffer_t *buffer)
           escaped = '\n';
           break;
         default:
+          free_arr_of_tokens(tokens.data, tokens.used);
           darr_free(&tokens);
+          stream_free(stream);
           return LERR_CHAR_UNRECOGNISED_ESCAPE;
           break;
         }
@@ -153,6 +162,7 @@ lerr_t tokenise_buffer(stream_t *stream, buffer_t *buffer)
         // NOTE: ASCII specific (no unicode hence one byte checks)
         if (buffer->data[buffer->cur + 1] != '\'')
         {
+          free_arr_of_tokens(tokens.data, tokens.used);
           darr_free(&tokens);
           return LERR_CHAR_WRONG_SIZE;
         }
@@ -225,6 +235,7 @@ lerr_t tokenise_buffer(stream_t *stream, buffer_t *buffer)
       }
       else
       {
+        free_arr_of_tokens(tokens.data, tokens.used);
         darr_free(&tokens);
         return LERR_UNRECOGNISED_TOKEN;
       }
