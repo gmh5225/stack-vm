@@ -1,4 +1,7 @@
-  ;; -*- mode: asm -*-
+;;; A program to print out the fibonacci numbers.
+
+;;; TODO: When finite looping is introduced (through conditions), stop
+;;; this from doing a STACK_OVERFLOW
 
   ;; Initial setup
   push 1
