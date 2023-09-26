@@ -52,7 +52,8 @@ int main(int argc, char *argv[])
   }
 
   int ret            = 0;
-  buffer_t buf       = {0};
+  buffer_t buffer    = {0};
+  stream_t stream    = {0};
   vm_t vm            = {0};
   op_t *instructions = NULL;
 
@@ -64,30 +65,44 @@ int main(int argc, char *argv[])
             in_name, strerror(errno));
     usage(stderr);
     ret = 1;
-    goto error;
+    goto end;
   }
 
   // Read file into memory
-  buf = buffer_read_file(in_name, fp);
+  buffer = buffer_read_file(in_name, fp);
   fclose(fp);
+
+  // Tokenise buffer
+  lerr_t lerr = tokenise_buffer(&stream, &buffer);
+  if (lerr != LERR_OK)
+  {
+    char *reason = lerr_generate(lerr, &buffer);
+    fprintf(stderr, "%s\n", reason);
+    free(reason);
+    ret = 255 - lerr;
+    goto end;
+  }
+  free(buffer.data);
+  buffer.data = NULL;
 
   instructions          = NULL;
   u64 instructions_size = 0;
+
   // Attempt to parse buffer
-  perr_t err = parse_buffer(&buf, &instructions, &instructions_size);
+  perr_t err = parse_stream(&stream, &instructions, &instructions_size);
   if (err != PERR_OK)
   {
-    char *reason = perr_generate(err, &buf);
+    char *reason = perr_generate(err, &stream);
     fprintf(stderr, "[" TERM_RED "ERROR" TERM_RESET "]: %s\n", reason);
     free(reason);
-    usage(stderr);
     ret = 255 - err;
-    goto error;
+    goto end;
   }
-  free(buf.data);
+  stream_free(&stream);
 
   vm_copy_program(&vm, instructions, instructions_size);
   free(instructions);
+  instructions = NULL;
 
   // Now we can output the parsed bytecode
   fp = fopen(out_name, "wb");
@@ -98,7 +113,7 @@ int main(int argc, char *argv[])
             in_name, strerror(errno));
     usage(stderr);
     ret = 1;
-    goto error;
+    goto end;
   }
 
   vm_write_program(&vm, fp);
@@ -110,15 +125,13 @@ int main(int argc, char *argv[])
          in_name, out_name);
 #endif
 
-  if (generated_output)
-    free(out_name);
-
-  return 0;
-error:
-  if (buf.data)
-    free(buf.data);
+end:
+  if (buffer.data)
+    free(buffer.data);
   if (instructions)
     free(instructions);
+  if (stream.tokens)
+    stream_free(&stream);
   if (generated_output)
     free(out_name);
   return ret;
