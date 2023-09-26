@@ -81,9 +81,7 @@ int main(int argc, char *argv[])
 #if VERBOSE == 1
   if (vm.sptr > 0)
   {
-    printf("[" TERM_RED "STACK"
-           "]: Leak of %lu items\n",
-           vm->sptr);
+    printf("[" TERM_RED "MEMORY LEAK" TERM_RESET "]:  %lu items\n", vm.sptr);
   }
 #endif
 

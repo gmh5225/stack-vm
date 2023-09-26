@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
   if (err != PERR_OK)
   {
     char *reason = perr_generate(err, &stream);
-    fprintf(stderr, "[" TERM_RED "ERROR" TERM_RESET "]: %s\n", reason);
+    fprintf(stderr, "%s\n", reason);
     free(reason);
     ret = 255 - err;
     goto end;
