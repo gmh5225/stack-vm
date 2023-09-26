@@ -19,6 +19,7 @@ typedef enum
 {
   TOKEN_EOF = 0,
   TOKEN_DOT,
+  TOKEN_HAT,
   TOKEN_DASH,
   TOKEN_WHITESPACE,
   TOKEN_COMMENT,
