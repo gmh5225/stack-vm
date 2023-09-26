@@ -147,6 +147,18 @@ lerr_t tokenise_buffer(stream_t *stream, buffer_t *buffer)
         case 'n':
           escaped = '\n';
           break;
+        case 't':
+          escaped = '\t';
+          break;
+        case 'r':
+          escaped = '\r';
+          break;
+        case 'v':
+          escaped = '\v';
+          break;
+        case 'f':
+          escaped = '\f';
+          break;
         default:
           free_arr_of_tokens(tokens.data, tokens.used);
           darr_free(&tokens);
