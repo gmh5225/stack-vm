@@ -13,6 +13,8 @@ typedef enum
 
 const char *lerr_as_cstr(lerr_t);
 
+char *lerr_generate(lerr_t, buffer_t *);
+
 typedef enum
 {
   TOKEN_EOF = 0,

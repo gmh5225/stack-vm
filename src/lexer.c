@@ -26,6 +26,29 @@ const char *lerr_as_cstr(lerr_t lerr)
   }
 }
 
+char *lerr_generate(lerr_t err, buffer_t *buffer)
+{
+  const char *err_cstr = lerr_as_cstr(err);
+  size_t column = 0, line = 1;
+  for (size_t i = 0; i < buffer->cur; ++i)
+  {
+    char c = buffer->data[i];
+    if (c == '\n')
+    {
+      column = 0;
+      ++line;
+    }
+    else
+      ++column;
+  }
+  int char_num_size =
+      snprintf(NULL, 0, "%s:%zu:%zu: %s", buffer->name, line, column, err_cstr);
+  char *message = calloc(char_num_size + 1, sizeof(*message));
+  sprintf(message, "%s:%zu:%zu: %s", buffer->name, line, column, err_cstr);
+  message[char_num_size] = '\0';
+  return message;
+}
+
 void token_print(token_t t, FILE *fp)
 {
   const char *type_cstr = "";
@@ -179,8 +202,9 @@ lerr_t tokenise_buffer(stream_t *stream, buffer_t *buffer)
           return LERR_CHAR_UNRECOGNISED_ESCAPE;
           break;
         }
+        ++column;
         token = token_create(TOKEN_CHARACTER, column, line, &escaped, 1);
-        column += 4;
+        column += 3;
         buffer->cur += 3;
       }
       else
@@ -193,10 +217,11 @@ lerr_t tokenise_buffer(stream_t *stream, buffer_t *buffer)
           return LERR_CHAR_WRONG_SIZE;
         }
 
+        ++column;
         token = token_create(TOKEN_CHARACTER, column, line,
                              buffer->data + buffer->cur, 1);
         buffer->cur += 2;
-        column += 3;
+        column += 2;
       }
       break;
     }
@@ -252,8 +277,7 @@ lerr_t tokenise_buffer(stream_t *stream, buffer_t *buffer)
         column += number_size + 1;
         buffer->cur += number_size;
       }
-      else if (strchr(LEXER_SYMBOL_ACCEPTED, c) &&
-               strchr(LEXER_SYMBOL_ACCEPTED, buffer_peek(*buffer)))
+      else if (strchr(LEXER_SYMBOL_ACCEPTED, c))
       {
         size_t symbol_size = 0;
         for (char symbol_char = buffer_peek(*buffer);
