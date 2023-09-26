@@ -300,3 +300,93 @@ bool test_tokenise_character(void)
   LOG_TEST_STATUS(test_character_general, _);
   return test_character_escape & test_character_general;
 }
+
+bool test_tokenise_number(void)
+{
+  const char name[] = "*test-number*";
+  buffer_t buffer   = {0};
+  stream_t stream   = {0};
+
+  // Integral values
+  bool test_integral_values = true;
+  LOG_TEST_START(test_integral_values);
+  {
+    const char *test_input =
+        "1 100 1000 1180591620717411303424 -1 -100 -1000 -3141592653";
+    const char *expected_output[] = {
+        "1",  "100",  "1000",  "1180591620717411303424",
+        "-1", "-100", "-1000", "-3141592653"};
+    buffer      = buffer_read_cstr(name, test_input, strlen(test_input));
+    lerr_t lerr = tokenise_buffer(&stream, &buffer);
+
+    printf("\t");
+    ASSERT(test_integral_no_lerr, lerr == LERR_OK);
+    printf("\t");
+    ASSERT(test_integral_expected_amount,
+           stream.size == ARR_SIZE(expected_output) * 2);
+
+    bool test_integral_expected_numbers = true;
+    for (size_t i = 0, j = 0; i < stream.size; i += 2, j += 1)
+    {
+      printf("\t\t");
+      ASSERT(test_ith_integral_type, stream.tokens[i].type == TOKEN_NUMBER);
+      printf("\t\t");
+      ASSERT(test_ith_integral_expected_literal,
+             strncmp(stream.tokens[i].content, expected_output[j],
+                     stream.tokens[i].size) == 0);
+
+      test_integral_expected_numbers *=
+          test_ith_integral_type & test_ith_integral_expected_literal;
+    }
+
+    free(buffer.data);
+    stream_free(&stream);
+
+    test_integral_values = test_integral_no_lerr &
+                           test_integral_expected_amount &
+                           test_integral_expected_numbers;
+  }
+  LOG_TEST_STATUS(test_integral_values, _);
+  // Floating point/decimal values
+  bool test_floating_point_values = true;
+  LOG_TEST_START(test_floating_point_values);
+  {
+    const char *test_input = "3.141592653 1.4142135623730951 2023.2609 -420.69";
+    const char *expected_output[] = {"3.141592653", "1.4142135623730951",
+                                     "2023.2609", "-420.69"};
+    buffer      = buffer_read_cstr(name, test_input, strlen(test_input));
+    lerr_t lerr = tokenise_buffer(&stream, &buffer);
+
+    printf("\t");
+    ASSERT(test_floating_point_no_lerr, lerr == LERR_OK);
+    printf("\t");
+    ASSERT(test_floating_point_expected_amount,
+           stream.size == ARR_SIZE(expected_output) * 2);
+
+    bool test_floating_point_expected_numbers = true;
+    for (size_t i = 0, j = 0; i < stream.size; i += 2, j += 1)
+    {
+      printf("\t\t");
+      ASSERT(test_ith_floating_point_type,
+             stream.tokens[i].type == TOKEN_NUMBER);
+      printf("\t\t");
+      ASSERT(test_ith_floating_point_expected_literal,
+             strncmp(stream.tokens[i].content, expected_output[j],
+                     stream.tokens[i].size) == 0);
+
+      test_floating_point_expected_numbers *=
+          test_ith_floating_point_type &
+          test_ith_floating_point_expected_literal;
+    }
+
+    free(buffer.data);
+    stream_free(&stream);
+
+    test_floating_point_values = test_floating_point_no_lerr &
+                                 test_floating_point_expected_amount &
+                                 test_floating_point_expected_numbers;
+  }
+  LOG_TEST_STATUS(test_floating_point_values, _);
+
+  return test_integral_values & test_floating_point_values;
+}
