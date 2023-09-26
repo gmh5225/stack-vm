@@ -12,7 +12,7 @@
 
 bool test_tokenise_one_character(void)
 {
-  static_assert(TOKEN_WHITESPACE == 3,
+  static_assert(TOKEN_WHITESPACE == 5,
                 "test_tokenise_one_character is outdated");
 
   // Setting up mocks
@@ -69,7 +69,6 @@ bool test_tokenise_one_character(void)
   // Test dash
   bool test_dash = true;
   {
-
     buffer      = buffer_read_cstr(name, "-", 1);
     lerr_t lerr = tokenise_buffer(&stream, &buffer);
 
@@ -90,9 +89,52 @@ bool test_tokenise_one_character(void)
     stream_free(&stream);
   }
 
-  // Test comment
+  // Test hat
+  bool test_hat = true;
+  {
+    buffer      = buffer_read_cstr(name, "^", 1);
+    lerr_t lerr = tokenise_buffer(&stream, &buffer);
 
-  return test_eof & test_dot & test_dash;
+    LOG_TEST_START(test_hat);
+    printf("\t");
+    ASSERT(test_hat_no_lerr, lerr == LERR_OK);
+    printf("\t");
+    ASSERT(test_hat_buffer_parsed, stream.size == 2);
+    printf("\t");
+    ASSERT(test_hat_lexeme_first_is_hat, stream.tokens[0].type == TOKEN_HAT);
+    printf("\t");
+    ASSERT(test_hat_lexeme_second_is_eof, stream.tokens[1].type == TOKEN_EOF);
+    test_hat = test_hat_no_lerr & test_hat_buffer_parsed &
+               test_hat_lexeme_first_is_hat & test_hat_lexeme_second_is_eof;
+    LOG_TEST_STATUS(test_hat, test_hat *);
+
+    free(buffer.data);
+    stream_free(&stream);
+  }
+  // Test star
+  bool test_star = true;
+  {
+    buffer      = buffer_read_cstr(name, "*", 1);
+    lerr_t lerr = tokenise_buffer(&stream, &buffer);
+
+    LOG_TEST_START(test_star);
+    printf("\t");
+    ASSERT(test_star_no_lerr, lerr == LERR_OK);
+    printf("\t");
+    ASSERT(test_star_buffer_parsed, stream.size == 2);
+    printf("\t");
+    ASSERT(test_star_lexeme_first_is_star, stream.tokens[0].type == TOKEN_STAR);
+    printf("\t");
+    ASSERT(test_star_lexeme_second_is_eof, stream.tokens[1].type == TOKEN_EOF);
+    test_star = test_star_no_lerr & test_star_buffer_parsed &
+                test_star_lexeme_first_is_star & test_star_lexeme_second_is_eof;
+    LOG_TEST_STATUS(test_star, test_star *);
+
+    free(buffer.data);
+    stream_free(&stream);
+  }
+
+  return test_eof & test_dot & test_dash & test_hat & test_star;
 }
 
 bool test_tokenise_whitespace(void)
@@ -401,8 +443,8 @@ bool test_tokenise_comments(void)
   LOG_TEST_START(test_comment_doc_string);
   {
 
-    const char *input = "#this is a comment\n"
-                        "# another comment with    a    lot   of   space";
+    const char *input = ";this is a comment\n"
+                        "; another comment with    a    lot   of   space";
 
     const char *expected_comments[] = {
         "this is a comment", " another comment with    a    lot   of   space"};
@@ -429,9 +471,9 @@ bool test_tokenise_comments(void)
   bool test_comment_inline = true;
   LOG_TEST_START(test_comment_inline);
   {
-    const char *input               = "a-symbol#with a comment\n"
-                                      "2000 #a number with a comment\n"
-                                      "push 10 # push 10 onto the stack\n";
+    const char *input               = "a-symbol;with a comment\n"
+                                      "2000 ;a number with a comment\n"
+                                      "push 10 ; push 10 onto the stack\n";
     const char *expected_comments[] = {
         "with a comment", "a number with a comment", " push 10 onto the stack"};
 

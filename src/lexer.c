@@ -63,6 +63,11 @@ void token_print(token_t t, FILE *fp)
   case TOKEN_DASH:
     type_cstr = "TOKEN_DASH";
     break;
+  case TOKEN_HAT:
+    type_cstr = "TOKEN_HAT";
+    break;
+  case TOKEN_STAR:
+    type_cstr = "TOKEN_STAR";
     break;
   case TOKEN_COMMENT:
     type_cstr = "TOKEN_COMMENT";
