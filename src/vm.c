@@ -143,12 +143,20 @@ err_t vm_execute(vm_t *vm)
     vm->iptr++;
     break;
   case OP_JUMP: {
-    data_type_t type = data_type(op.operand);
-    if (!data_type_is_numeric(type))
+    data_t *operand = op.operand;
+    if (operand == data_nil())
+    {
+      if (vm->sptr < 0)
+        return ERR_STACK_UNDERFLOW;
+      operand = vm->stack[vm->sptr--];
+    }
+    data_type_t type = data_type(operand);
+
+    if (type != DATA_UINT)
       return ERR_ILLEGAL_TYPE;
-    if (type != DATA_UINT || data_as_uint(op.operand) > vm->size_program)
+    else if (data_as_uint(operand) > vm->size_program)
       return ERR_ILLEGAL_JUMP;
-    vm->iptr = data_as_uint(op.operand);
+    vm->iptr = data_as_uint(operand);
     break;
   }
   case NUMBER_OF_OPERATORS:
